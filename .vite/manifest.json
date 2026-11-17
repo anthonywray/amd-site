@@ -1,0 +1,123 @@
+{
+  "design/assets/fonts/eb-garamond/eb-garamond-latin-400-italic.woff2": {
+    "file": "assets/eb-garamond-latin-400-italic-DSEbMgZu.woff2",
+    "src": "design/assets/fonts/eb-garamond/eb-garamond-latin-400-italic.woff2"
+  },
+  "design/assets/fonts/eb-garamond/eb-garamond-latin-400-normal.woff2": {
+    "file": "assets/eb-garamond-latin-400-normal-BCNrxLz_.woff2",
+    "src": "design/assets/fonts/eb-garamond/eb-garamond-latin-400-normal.woff2"
+  },
+  "design/assets/fonts/eb-garamond/eb-garamond-latin-600-italic.woff2": {
+    "file": "assets/eb-garamond-latin-600-italic-M3_Pd09c.woff2",
+    "src": "design/assets/fonts/eb-garamond/eb-garamond-latin-600-italic.woff2"
+  },
+  "design/assets/fonts/eb-garamond/eb-garamond-latin-600-normal.woff2": {
+    "file": "assets/eb-garamond-latin-600-normal-DHwxsLHv.woff2",
+    "src": "design/assets/fonts/eb-garamond/eb-garamond-latin-600-normal.woff2"
+  },
+  "design/assets/fonts/eb-garamond/eb-garamond-latin-ext-400-italic.woff2": {
+    "file": "assets/eb-garamond-latin-ext-400-italic-V7s3nWfX.woff2",
+    "src": "design/assets/fonts/eb-garamond/eb-garamond-latin-ext-400-italic.woff2"
+  },
+  "design/assets/fonts/eb-garamond/eb-garamond-latin-ext-400-normal.woff2": {
+    "file": "assets/eb-garamond-latin-ext-400-normal-o4A__6QZ.woff2",
+    "src": "design/assets/fonts/eb-garamond/eb-garamond-latin-ext-400-normal.woff2"
+  },
+  "design/assets/fonts/eb-garamond/eb-garamond-latin-ext-600-italic.woff2": {
+    "file": "assets/eb-garamond-latin-ext-600-italic-BH9Ofl1K.woff2",
+    "src": "design/assets/fonts/eb-garamond/eb-garamond-latin-ext-600-italic.woff2"
+  },
+  "design/assets/fonts/eb-garamond/eb-garamond-latin-ext-600-normal.woff2": {
+    "file": "assets/eb-garamond-latin-ext-600-normal-CrweTMKz.woff2",
+    "src": "design/assets/fonts/eb-garamond/eb-garamond-latin-ext-600-normal.woff2"
+  },
+  "design/assets/fonts/ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2": {
+    "file": "assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2",
+    "src": "design/assets/fonts/ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2"
+  },
+  "design/assets/fonts/ibm-plex-mono/ibm-plex-mono-latin-500-normal.woff2": {
+    "file": "assets/ibm-plex-mono-latin-500-normal-DSY6xOcd.woff2",
+    "src": "design/assets/fonts/ibm-plex-mono/ibm-plex-mono-latin-500-normal.woff2"
+  },
+  "design/assets/fonts/ibm-plex-mono/ibm-plex-mono-latin-ext-400-normal.woff2": {
+    "file": "assets/ibm-plex-mono-latin-ext-400-normal-BmRBH3aV.woff2",
+    "src": "design/assets/fonts/ibm-plex-mono/ibm-plex-mono-latin-ext-400-normal.woff2"
+  },
+  "design/assets/fonts/ibm-plex-mono/ibm-plex-mono-latin-ext-500-normal.woff2": {
+    "file": "assets/ibm-plex-mono-latin-ext-500-normal-CAhNIIs5.woff2",
+    "src": "design/assets/fonts/ibm-plex-mono/ibm-plex-mono-latin-ext-500-normal.woff2"
+  },
+  "design/assets/motifs/counter.svg": {
+    "file": "assets/counter-B-d9_E14.svg",
+    "src": "design/assets/motifs/counter.svg"
+  },
+  "design/assets/motifs/fields.svg": {
+    "file": "assets/fields-BITghZSq.svg",
+    "src": "design/assets/motifs/fields.svg"
+  },
+  "design/assets/motifs/page-draft.svg": {
+    "file": "assets/page-draft-DRw_NtDk.svg",
+    "src": "design/assets/motifs/page-draft.svg"
+  },
+  "design/assets/motifs/page-light.svg": {
+    "file": "assets/page-light-mzj0ev7s.svg",
+    "src": "design/assets/motifs/page-light.svg"
+  },
+  "design/assets/motifs/page.svg": {
+    "file": "assets/page-CHumEf0A.svg",
+    "src": "design/assets/motifs/page.svg"
+  },
+  "design/assets/motifs/release.svg": {
+    "file": "assets/release-Vfw61DDB.svg",
+    "src": "design/assets/motifs/release.svg"
+  },
+  "design/assets/motifs/snippets.svg": {
+    "file": "assets/snippets-BATI1tDv.svg",
+    "src": "design/assets/motifs/snippets.svg"
+  },
+  "design/assets/textures/concrete.svg": {
+    "file": "assets/concrete-D9DXgtGj.svg",
+    "src": "design/assets/textures/concrete.svg"
+  },
+  "design/assets/textures/water.svg": {
+    "file": "assets/water-BcTlHXpv.svg",
+    "src": "design/assets/textures/water.svg"
+  },
+  "design/assets/textures/wood.svg": {
+    "file": "assets/wood-Dqdxn8bu.svg",
+    "src": "design/assets/textures/wood.svg"
+  },
+  "index.html": {
+    "file": "assets/index-yC0d1E-3.js",
+    "name": "index",
+    "src": "index.html",
+    "isEntry": true,
+    "css": [
+      "assets/index-DZ8-cII8.css"
+    ],
+    "assets": [
+      "assets/eb-garamond-latin-400-italic-DSEbMgZu.woff2",
+      "assets/eb-garamond-latin-ext-400-italic-V7s3nWfX.woff2",
+      "assets/eb-garamond-latin-400-normal-BCNrxLz_.woff2",
+      "assets/eb-garamond-latin-ext-400-normal-o4A__6QZ.woff2",
+      "assets/eb-garamond-latin-600-italic-M3_Pd09c.woff2",
+      "assets/eb-garamond-latin-ext-600-italic-BH9Ofl1K.woff2",
+      "assets/eb-garamond-latin-600-normal-DHwxsLHv.woff2",
+      "assets/eb-garamond-latin-ext-600-normal-CrweTMKz.woff2",
+      "assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2",
+      "assets/ibm-plex-mono-latin-ext-400-normal-BmRBH3aV.woff2",
+      "assets/ibm-plex-mono-latin-500-normal-DSY6xOcd.woff2",
+      "assets/ibm-plex-mono-latin-ext-500-normal-CAhNIIs5.woff2",
+      "assets/wood-Dqdxn8bu.svg",
+      "assets/concrete-D9DXgtGj.svg",
+      "assets/water-BcTlHXpv.svg",
+      "assets/page-CHumEf0A.svg",
+      "assets/page-light-mzj0ev7s.svg",
+      "assets/page-draft-DRw_NtDk.svg",
+      "assets/snippets-BATI1tDv.svg",
+      "assets/fields-BITghZSq.svg",
+      "assets/release-Vfw61DDB.svg",
+      "assets/counter-B-d9_E14.svg"
+    ]
+  }
+}
