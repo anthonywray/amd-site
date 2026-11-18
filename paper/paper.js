@@ -40,3 +40,24 @@ if (links.length && typeof HTMLDialogElement === 'function') {
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
   dialog.addEventListener('close', () => { image.removeAttribute('src'); opener?.focus(); });
 }
+
+// Contents sidebar: main sections stay visible; each sub-list (subsections, the appendices)
+// sits behind a ▾ toggle. On narrow screens the whole box starts closed. Without JS the
+// contents are fully expanded.
+const box = document.querySelector('details.toc-box');
+if (box) {
+  if (!window.matchMedia('(min-width: 64rem)').matches) box.open = false;
+  box.querySelectorAll('ol.toc-sub').forEach((list, index) => {
+    const item = list.parentElement;
+    const name = item.querySelector(':scope > a .toc-text, :scope > .toc-group-title')?.textContent ?? 'section';
+    const toggle = document.createElement('button');
+    toggle.type = 'button'; toggle.className = 'toc-toggle'; toggle.textContent = '▾';
+    list.id = list.id || `toc-sub-${index}`;
+    toggle.setAttribute('aria-controls', list.id);
+    toggle.setAttribute('aria-label', `Show ${item.classList.contains('toc-group') ? 'the appendices' : `subsections of ${name}`}`);
+    const set = open => { list.hidden = !open; toggle.setAttribute('aria-expanded', String(open)); toggle.textContent = open ? '▴' : '▾'; };
+    toggle.addEventListener('click', () => set(list.hidden));
+    item.querySelector(':scope > a, :scope > .toc-group-title').after(toggle);
+    set(false);
+  });
+}

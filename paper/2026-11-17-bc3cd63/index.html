@@ -14,6 +14,8 @@ LLM Transcription with Manual Data Entry at Scale · AMD panel</title>
 <a class="brand" href="../../#/home" aria-label="AMD panel home">AMD</a>
 <nav aria-label="Main"><a href="../../#/home">Home</a> <a href="../../#/data">Data</a> <a href="../../#/paper" aria-current="page">Paper</a> <a href="../../#/team">Team</a></nav>
 </header>
+<div class="paper-layout">
+<aside class="paper-side"><details class="toc-box" open><summary>Contents</summary><nav aria-label="Contents"><ol class="toc"><li><a href="#sec:intro"><span class="toc-num">1</span><span class="toc-text">Introduction</span></a></li><li><a href="#sec:source"><span class="toc-num">2</span><span class="toc-text">Background and Data: the American Medical Directory</span></a></li><li><a href="#sec:data"><span class="toc-num">3</span><span class="toc-text">Digitizing the Directory: OCR and Structured Extraction Pipelines</span></a><ol class="toc-sub"><li><a href="#sec:ocr"><span class="toc-num">3.1</span><span class="toc-text">Page images and OCR</span></a></li><li><a href="#sec:readings"><span class="toc-num">3.2</span><span class="toc-text">Five machine extraction workflows</span></a></li><li><a href="#sec:release"><span class="toc-num">3.3</span><span class="toc-text">The public data release</span></a></li></ol></li><li><a href="#sec:methods"><span class="toc-num">4</span><span class="toc-text">Validation</span></a><ol class="toc-sub"><li><a href="#sec:reference"><span class="toc-num">4.1</span><span class="toc-text">Double-entry manual transcription</span></a></li><li><a href="#sec:population"><span class="toc-num">4.2</span><span class="toc-text">Reference population for validation</span></a></li><li><a href="#sec:corr"><span class="toc-num">4.3</span><span class="toc-text">Record linkage to the validation sample</span></a></li><li><a href="#sec:measures"><span class="toc-num">4.4</span><span class="toc-text">Precision and recall measures</span></a></li></ol></li><li><a href="#sec:results"><span class="toc-num">5</span><span class="toc-text">Results</span></a><ol class="toc-sub"><li><a href="#sec:records"><span class="toc-num">5.1</span><span class="toc-text">Record-level agreement</span></a></li><li><a href="#sec:fields"><span class="toc-num">5.2</span><span class="toc-text">Field-level agreement</span></a></li><li><a href="#sec:disagree"><span class="toc-num">5.3</span><span class="toc-text">Sources of disagreement</span></a></li><li><a href="#sec:cost"><span class="toc-num">5.4</span><span class="toc-text">Cost</span></a></li></ol></li><li><a href="#sec:robust-main"><span class="toc-num">6</span><span class="toc-text">Robustness</span></a></li><li><a href="#sec:next"><span class="toc-num">7</span><span class="toc-text">Conclusion</span></a></li><li><a href="#references"><span class="toc-num"></span><span class="toc-text">References</span></a></li><li class="toc-group"><span class="toc-group-title">Appendices</span><ol class="toc-sub"><li><a href="#app:prior"><span class="toc-num">A</span><span class="toc-text">Prior transcriptions of the AMD</span></a></li><li><a href="#app:protocol"><span class="toc-num">B</span><span class="toc-text">Scoring protocol</span></a></li><li><a href="#app:key"><span class="toc-num">C</span><span class="toc-text">The printed key for 1921</span></a></li><li><a href="#app:corr"><span class="toc-num">D</span><span class="toc-text">Linkage sensitivity and stage decomposition</span></a></li><li><a href="#app:gemini"><span class="toc-num">E</span><span class="toc-text">The MLLM workflow in detail</span></a></li><li><a href="#app:repro"><span class="toc-num">F</span><span class="toc-text">Reproducibility statement</span></a></li><li><a href="#app:fields"><span class="toc-num">G</span><span class="toc-text">Field tables by workflow</span></a></li><li><a href="#app:cost"><span class="toc-num">H</span><span class="toc-text">Cost accounting</span></a></li><li><a href="#app:robust"><span class="toc-num">I</span><span class="toc-text">Robustness to the page frame</span></a></li></ol></li></ol></nav></details></aside>
 <main id="paper" tabindex="-1">
 <p class="label">Data note · Revision 17 November 2026 · Source bc3cd63</p>
 <section id="title"
@@ -25,12 +27,20 @@ Directory Panel</h1>
 Scale<a href="#fn1" class="footnote-ref" id="fnref1"
 role="doc-noteref"><sup>1</sup></a></p>
 </div>
-<p class="paper-actions"><a class="button" href="paper.pdf">PDF version</a> <a class="button" href="https://doi.org/10.5281/zenodo.24325313">Zenodo preprint: doi:10.5281/zenodo.24325313</a></p>
-<p><span> Christian M. Dahl Sophie Li Rasmus Emil Nyholm<br />
-Maja U. Pedersen Anthony Wray<a href="#fn2" class="footnote-ref"
+<div class="paper-actions"><a class="button primary" href="paper.pdf">PDF version</a> <a class="button secondary" href="https://doi.org/10.5281/zenodo.24325313" aria-label="Zenodo preprint, doi:10.5281/zenodo.24325313">Zenodo preprint</a><p class="doi">doi:10.5281/zenodo.24325313</p></div>
+<div class="authors">
+<p><span class="author">Christian M. Dahl</span>, <span
+class="author">Sophie Li</span>, <span class="author">Rasmus Emil
+Nyholm</span>, <span class="author">Maja U. Pedersen</span>, <span
+class="author">Anthony Wray<a href="#fn2" class="footnote-ref"
 id="fnref2" role="doc-noteref"><sup>2</sup></a></span></p>
-<p><span>  University of Southern Denmark</span></p>
-<p><span>17 November 2026</span></p>
+</div>
+<div class="front-line">
+<p>University of Southern Denmark</p>
+</div>
+<div class="front-line">
+<p>17 November 2026</p>
+</div>
 </section>
 <section id="abstract" class="level2 unnumbered unlisted abstract">
 <h2 class="unnumbered unlisted">Abstract</h2>
@@ -54,7 +64,7 @@ the commercial OCR model with an open-source alternative lowers its
 recall by only about 2 percentage points. As the manual transcription’s
 own error rate is unknown, these rates measure agreement rather than
 accuracy. Direct processing charges for the commercial OCR and
-multimodal workflow were about 0.03 per page, compared with 14.70 per
+multimodal workflow were about €0.03 per page, compared with €14.70 per
 page for manual transcription. We release the data and codebook under
 CC BY 4.0.</p>
 </div>
@@ -63,90 +73,6 @@ CC BY 4.0.</p>
 historical directories; OCR; large language models; transcription;
 record linkage; United States, 1912, 1921</p>
 </section>
-<details class="paper-toc"><summary>Contents</summary>
-<nav aria-label="Contents">
-<ul>
-<li><a href="#sec:intro" id="toc-sec:intro"><span
-class="header-section-number">1</span> Introduction</a></li>
-<li><a href="#sec:source" id="toc-sec:source"><span
-class="header-section-number">2</span> Background and Data: the American
-Medical Directory</a></li>
-<li><a href="#sec:data" id="toc-sec:data"><span
-class="header-section-number">3</span> Digitizing the Directory: OCR and
-Structured Extraction Pipelines</a>
-<ul>
-<li><a href="#sec:ocr" id="toc-sec:ocr"><span
-class="header-section-number">3.1</span> Page images and OCR</a></li>
-<li><a href="#sec:readings" id="toc-sec:readings"><span
-class="header-section-number">3.2</span> Five machine extraction
-workflows</a></li>
-<li><a href="#sec:release" id="toc-sec:release"><span
-class="header-section-number">3.3</span> The public data
-release</a></li>
-</ul></li>
-<li><a href="#sec:methods" id="toc-sec:methods"><span
-class="header-section-number">4</span> Validation</a>
-<ul>
-<li><a href="#sec:reference" id="toc-sec:reference"><span
-class="header-section-number">4.1</span> Double-entry manual
-transcription</a></li>
-<li><a href="#sec:population" id="toc-sec:population"><span
-class="header-section-number">4.2</span> Reference population for
-validation</a></li>
-<li><a href="#sec:corr" id="toc-sec:corr"><span
-class="header-section-number">4.3</span> Record linkage to the
-validation sample</a></li>
-<li><a href="#sec:measures" id="toc-sec:measures"><span
-class="header-section-number">4.4</span> Precision and recall
-measures</a></li>
-</ul></li>
-<li><a href="#sec:results" id="toc-sec:results"><span
-class="header-section-number">5</span> Results</a>
-<ul>
-<li><a href="#sec:records" id="toc-sec:records"><span
-class="header-section-number">5.1</span> Record-level agreement</a></li>
-<li><a href="#sec:fields" id="toc-sec:fields"><span
-class="header-section-number">5.2</span> Field-level agreement</a></li>
-<li><a href="#sec:disagree" id="toc-sec:disagree"><span
-class="header-section-number">5.3</span> Sources of
-disagreement</a></li>
-<li><a href="#sec:cost" id="toc-sec:cost"><span
-class="header-section-number">5.4</span> Cost</a></li>
-</ul></li>
-<li><a href="#sec:robust-main" id="toc-sec:robust-main"><span
-class="header-section-number">6</span> Robustness</a></li>
-<li><a href="#sec:next" id="toc-sec:next"><span
-class="header-section-number">7</span> Conclusion</a></li>
-<li><a href="#references" id="toc-references">References</a></li>
-<li><a href="#app:prior" id="toc-app:prior"><span
-class="header-section-number">Appendix A</span> Prior transcriptions of
-the AMD</a></li>
-<li><a href="#app:protocol" id="toc-app:protocol"><span
-class="header-section-number">Appendix B</span> Scoring
-protocol</a></li>
-<li><a href="#app:key" id="toc-app:key"><span
-class="header-section-number">Appendix C</span> The printed key for
-1921</a></li>
-<li><a href="#app:corr" id="toc-app:corr"><span
-class="header-section-number">Appendix D</span> Linkage sensitivity and
-stage decomposition</a></li>
-<li><a href="#app:gemini" id="toc-app:gemini"><span
-class="header-section-number">Appendix E</span> The MLLM workflow in
-detail</a></li>
-<li><a href="#app:repro" id="toc-app:repro"><span
-class="header-section-number">Appendix F</span> Reproducibility
-statement</a></li>
-<li><a href="#app:fields" id="toc-app:fields"><span
-class="header-section-number">Appendix G</span> Field tables by
-workflow</a></li>
-<li><a href="#app:cost" id="toc-app:cost"><span
-class="header-section-number">Appendix H</span> Cost accounting</a></li>
-<li><a href="#app:robust" id="toc-app:robust"><span
-class="header-section-number">Appendix I</span> Robustness to the page
-frame</a></li>
-</ul>
-</nav>
-</details>
 <section id="sec:intro" class="level2">
 <h2><span class="header-section-number">1</span> Introduction</h2>
 <p>How closely does machine transcription agree with manual double-entry
@@ -249,11 +175,11 @@ entries the MLLM workflow did not link, while most for license year and
 medical school are different values on linked records. The widest gaps
 between methods are in county in both editions and in city in 1921.
 Third, processing charges for the commercial OCR and MLLM workflow are
-far below the price of manual transcription: an estimated 0.03 per page,
-against 14.70 per page for double-entered transcription. This comparison
-excludes engineering, review, and model-development time. Even so,
-digitization projects previously considered prohibitively expensive may
-now be feasible.</p>
+far below the price of manual transcription: an estimated €0.03 per
+page, against €14.70 per page for double-entered transcription. This
+comparison excludes engineering, review, and model-development time.
+Even so, digitization projects previously considered prohibitively
+expensive may now be feasible.</p>
 <p>These figures should be read in light of the problem raised above:
 agreement with a reference dataset is not the same as accuracy. Our
 reference is a double-entered transcription whose own error rate is
@@ -406,10 +332,10 @@ study.</p>
 <figure id="fig:entry">
 <a href="figures/entry-anatomy-1920.webp" class="figure-zoom"
 aria-label="Open Figure 1 full size"><img
-src="figures/entry-anatomy-1280.webp" loading="lazy"
+src="figures/entry-anatomy-1280.webp"
 srcset="figures/entry-anatomy-640.webp 640w, figures/entry-anatomy-1280.webp 1280w, figures/entry-anatomy-1920.webp 1920w"
-decoding="async" sizes="(min-width: 60rem) 56rem, 100vw" width="1280"
-height="780"
+sizes="(min-width: 60rem) 56rem, 100vw" loading="lazy" decoding="async"
+width="1280" height="780"
 alt="A page of the 1921 directory and the parts of an entry" /></a>
 <figcaption><span class="caption-label">Figure 1. </span>A page of the
 1921 directory and the parts of an entry</figcaption>
@@ -617,8 +543,8 @@ elements and the release field each one feeds. The Zenodo record also
 includes a preferred citation.</p>
 <div class="threeparttable">
 <div id="tab:desc" class="table-float">
-<div class="table-scroll" aria-label="Table 1" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table 1"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table 1. </span>Public Data
 Release: Descriptive Statistics</caption>
@@ -716,7 +642,7 @@ Release: Descriptive Statistics</caption>
 </div>
 <div class="tablenotes">
 <p>Listed rows are printed entries, not distinct people; cross-reference
-lines are counted on their own row. Census regions are the Bureaus four
+lines are counted on their own row. Census regions are the Bureau’s four
 regions over the 48 states and the District of Columbia; a row whose
 state is not resolved to a code is retained and counted on its own line.
 A field has a value when its cleaned column is non-missing; county and
@@ -880,8 +806,8 @@ focus on comparisons that show how agreement changes when individual
 components of the extraction process are altered.</p>
 <div class="threeparttable">
 <div id="tab:records" class="table-float">
-<div class="table-scroll" aria-label="Table 2" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table 2"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table 2. </span>Record agreement by
 method, 1912 and 1921</caption>
@@ -1163,9 +1089,9 @@ transcription.</p>
 </section>
 <section id="sec:cost" class="level3">
 <h3><span class="header-section-number">5.4</span> Cost</h3>
-<p>The commercial OCR and MLLM workflow cost an estimated 0.03 per page
+<p>The commercial OCR and MLLM workflow cost an estimated €0.03 per page
 in direct processing charges (Gemini plus Azure OCR), roughly 440 times
-less than manual double-entry transcription, which cost 14.70 per page.
+less than manual double-entry transcription, which cost €14.70 per page.
 These figures cover processing charges only and leave out engineering,
 review, model development, coding-agent assistance and the local
 computing used to run the open model pipelines, which also serves other
@@ -1214,7 +1140,7 @@ to combine workflows. The MLLM workflow and the AI-assisted parser fail
 on partly overlapping sets of records, and the combined table reaches
 98.28% recall in 1921 and 97.80% in 1912, above any single workflow.
 Direct processing charges for the commercial OCR and MLLM workflow are
-an estimated 0.03 per page, against 14.70 per page for manual
+an estimated €0.03 per page, against €14.70 per page for manual
 transcription, roughly 440 times less before engineering, review and
 hardware.</p>
 <p>As we have emphasized, the reported precision and recall measures
@@ -1517,8 +1443,8 @@ Their titles and records show the subject but not how physicians were
 linked across editions.</p>
 <div class="threeparttable">
 <div id="tab:prior" class="table-float">
-<div class="table-scroll" aria-label="Table A.1" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table A.1"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table A.1. </span>Prior
 transcriptions of the American Medical Directory</caption>
@@ -1687,7 +1613,7 @@ frame.</p>
 <p>The MLLM workflow is the matched output of the stored biography and
 location passes; the 1921 model passes date from February 2026, and the
 1912 output is the one used in the tables prepared for release. The
-AI-assisted parser is the parsers raw candidate list for each edition.
+AI-assisted parser is the parser’s raw candidate list for each edition.
 The combined table is the reconciled output in each edition, with the
 checked cleaned county substituted for the as-read county. The paired
 county checks retain exactly the same links and all non-county fields.
@@ -1727,8 +1653,8 @@ line and the cross-reference are layout elements rather than key
 definitions; we read their meanings from the entries themselves.</p>
 <div class="threeparttable">
 <div id="tab:key" class="table-float">
-<div class="table-scroll" aria-label="Table C.1" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table C.1"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table C.1. </span>The 1921 printed
 key and release fields</caption>
@@ -1792,12 +1718,12 @@ located</td>
 <td style="text-align: left;">license year</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>l</code></td>
+<td style="text-align: left;"><code>l</code>†</td>
 <td style="text-align: left;">licensed, year not known</td>
 <td style="text-align: left;">not captured</td>
 </tr>
 <tr>
-<td style="text-align: left;"></td>
+<td style="text-align: left;">‡</td>
 <td style="text-align: left;">information received does not show license
 in the state where located</td>
 <td style="text-align: left;">not captured</td>
@@ -1883,8 +1809,8 @@ href="#sec:reference">4.1</a>) and Table <a href="#tab:arms">D.2</a> the
 five extraction workflows (Section <a href="#sec:readings">3.2</a>).</p>
 <div class="threeparttable">
 <div id="tab:pds" class="table-float">
-<div class="table-scroll" aria-label="Table D.1" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table D.1"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table D.1. </span>Coverage of the
 validation samples, 1912 and 1921</caption>
@@ -1956,8 +1882,8 @@ each edition.</p>
 </div>
 <div class="threeparttable">
 <div id="tab:arms" class="table-float">
-<div class="table-scroll" aria-label="Table D.2" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table D.2"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table D.2. </span>The five
 extraction workflows</caption>
@@ -1997,7 +1923,7 @@ href="#app:protocol">B</a>)</td>
 <td style="text-align: left;">MLLM and AI-assisted parser</td>
 <td style="text-align: left;">per-field reconciliation rules; release
 cleaning; 48-state rule</td>
-<td style="text-align: left;">the parsers fields with chosen values and
+<td style="text-align: left;">the parser’s fields with chosen values and
 per-field provenance</td>
 <td style="text-align: left;">reconciled output; checked cleaned county
 on fixed links</td>
@@ -2049,8 +1975,8 @@ by the transcription’s own flags, the evidence for Section <a
 href="#sec:disagree">5.3</a>.</p>
 <div class="threeparttable">
 <div id="tab:corr" class="table-float">
-<div class="table-scroll" aria-label="Table D.3" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table D.3"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table D.3. </span>Record agreement
 by link pass and page frame, 1921 (precision / recall, %)</caption>
@@ -2115,13 +2041,13 @@ pages</td>
 <p>Agreement with the cleaned validation sample; scan-verified accuracy
 not assessed. Broad frame: 1,233 page keys, 145,064 cleaned rows.
 Table <a href="#tab:records">2</a> reports the open OCR-LLM scores on
-the analysis frame. Source: the common scorers comparison results.</p>
+the analysis frame. Source: the common scorer’s comparison results.</p>
 </div>
 </div>
 <div class="threeparttable">
 <div id="tab:stages" class="table-float">
-<div class="table-scroll" aria-label="Table D.4" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table D.4"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table D.4. </span>The MLLM workflow
 by stage, 1921</caption>
@@ -2167,8 +2093,8 @@ comparison.</p>
 </div>
 <div class="threeparttable">
 <div id="tab:strata" class="table-float">
-<div class="table-scroll" aria-label="Table D.5" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table D.5"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table D.5. </span>Historical recall
 by the transcription’s own uncertainty flags, 1921</caption>
@@ -2320,8 +2246,8 @@ by workflow</h2>
 Figure <a href="#fig:fields">3</a>, for both editions.</p>
 <div class="threeparttable">
 <div id="tab:fields" class="table-float">
-<div class="table-scroll" aria-label="Table G.1" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table G.1"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table G.1. </span>Field agreement
 by workflow, 1912 and 1921 (precision / recall, %)</caption>
@@ -2501,8 +2427,8 @@ comparing candidates against the transcription in the 1912 and 1921
 editions before running this comparison.</p>
 <div class="threeparttable">
 <div id="tab:fieldcounts" class="table-float">
-<div class="table-scroll" aria-label="Table G.2" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table G.2"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table G.2. </span>Field counts by
 workflow, 1921: agreeing / scorable output / scorable reference
@@ -2586,8 +2512,8 @@ field-agreement comparison.</p>
 </div>
 <div class="threeparttable">
 <div id="tab:cleaning" class="table-float">
-<div class="table-scroll" aria-label="Table G.3" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table G.3"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table G.3. </span>Release cleaning
 and agreement, combined table, 1921 (precision / recall, %)</caption>
@@ -2634,8 +2560,8 @@ columns. Source: the release-cleaning comparison.</p>
 </div>
 <div class="threeparttable">
 <div id="tab:directions" class="table-float">
-<div class="table-scroll" aria-label="Table G.4" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table G.4"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table G.4. </span>Disagreement
 between the MLLM workflow and the AI-assisted parser on rows linked
@@ -2701,7 +2627,7 @@ accounting</h2>
 transcription and the direct processing charges for the machine
 workflows, in total and per page. Manual costs are the delivered
 workbook page counts, 2,242 pages across both editions, at the invoiced
-14.70 per page. The machine cost per page divides the combined Gemini
+€14.70 per page. The machine cost per page divides the combined Gemini
 and Azure charges by the same page count. We allocate Gemini charges by
 whole billing days and assume one successful Azure OCR pass per page, so
 the machine figures are estimates, not invoice totals. Ratios use
@@ -2715,8 +2641,8 @@ covers a different set of pages and fields than the machine outputs, and
 we do not estimate a separate cost for the open model pipelines.</p>
 <div class="threeparttable">
 <div id="tab:costs" class="table-float">
-<div class="table-scroll" aria-label="Table H.1" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table H.1"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table H.1. </span>Manual
 transcription and estimated machine processing charges</caption>
@@ -2791,7 +2717,7 @@ transcription and estimated machine processing charges</caption>
 </div>
 </div>
 <div class="tablenotes">
-<p>Manual costs use delivered workbook page counts at 14.70 per page,
+<p>Manual costs use delivered workbook page counts at €14.70 per page,
 reconciled to PDS invoices; the 1918 batch and unassigned supplement are
 excluded. These are purchased-coverage counts, not the analysis frames.
 API figures cover Gemini and Azure, not a separate cost estimate for the
@@ -2828,8 +2754,8 @@ fixed edition-wide before any page restriction, so each frame scores the
 same links.</p>
 <div class="threeparttable">
 <div id="tab:robust-coverage" class="table-float">
-<div class="table-scroll" aria-label="Table I.1" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table I.1"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table I.1. </span>Record agreement
 by coverage frame, 1912 and 1921</caption>
@@ -2929,8 +2855,8 @@ href="#tab:records">2</a>.</p>
 </div>
 <div class="threeparttable">
 <div id="tab:robust-exposure" class="table-float">
-<div class="table-scroll" aria-label="Table I.2" tabindex="0"
-role="region">
+<div class="table-scroll" role="region" aria-label="Table I.2"
+tabindex="0">
 <table>
 <caption><span class="caption-label">Table I.2. </span>Record agreement
 with and without exposed pages, 1912 and 1921</caption>
@@ -3095,6 +3021,7 @@ role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 </main>
+</div>
 <script type="module" src="../paper.js"></script>
 </body>
 </html>
