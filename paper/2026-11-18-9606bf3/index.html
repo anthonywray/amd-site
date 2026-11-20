@@ -1,0 +1,3355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>The American Medical Directory Panel: Comparing AI-Assisted and
+LLM Transcription with Manual Data Entry at Scale · AMD panel</title>
+<link rel="stylesheet" href="../paper.css">
+</head>
+<body>
+<a class="skip-link" href="#paper">Skip to paper</a>
+<header class="paper-bar">
+<a class="brand" href="../../#/home" aria-label="AMD panel home">AMD</a>
+<nav aria-label="Main"><a href="../../#/home">Home</a> <a href="../../#/data">Data</a> <a href="../../#/paper" aria-current="page">Paper</a> <a href="../../#/team">Team</a></nav>
+</header>
+<div class="paper-layout">
+<aside class="paper-side"><details class="toc-box" open><summary>Contents</summary><nav aria-label="Contents"><ol class="toc"><li><a href="#sec:intro"><span class="toc-num">1</span><span class="toc-text">Introduction</span></a></li><li><a href="#sec:source"><span class="toc-num">2</span><span class="toc-text">Background and Data: the American Medical Directory</span></a></li><li><a href="#sec:data"><span class="toc-num">3</span><span class="toc-text">Digitizing the Directory: OCR and Structured Extraction Pipelines</span></a><ol class="toc-sub"><li><a href="#sec:ocr"><span class="toc-num">3.1</span><span class="toc-text">Page images and OCR</span></a></li><li><a href="#sec:readings"><span class="toc-num">3.2</span><span class="toc-text">Five machine extraction workflows</span></a></li><li><a href="#sec:release"><span class="toc-num">3.3</span><span class="toc-text">The public data release</span></a></li></ol></li><li><a href="#sec:methods"><span class="toc-num">4</span><span class="toc-text">Validation</span></a><ol class="toc-sub"><li><a href="#sec:reference"><span class="toc-num">4.1</span><span class="toc-text">Double-entry manual transcription</span></a></li><li><a href="#sec:population"><span class="toc-num">4.2</span><span class="toc-text">Reference population for validation</span></a></li><li><a href="#sec:corr"><span class="toc-num">4.3</span><span class="toc-text">Record linkage to the validation sample</span></a></li><li><a href="#sec:measures"><span class="toc-num">4.4</span><span class="toc-text">Precision and recall measures</span></a></li></ol></li><li><a href="#sec:results"><span class="toc-num">5</span><span class="toc-text">Results</span></a><ol class="toc-sub"><li><a href="#sec:records"><span class="toc-num">5.1</span><span class="toc-text">Record-level agreement</span></a></li><li><a href="#sec:fields"><span class="toc-num">5.2</span><span class="toc-text">Field-level agreement</span></a></li><li><a href="#sec:disagree"><span class="toc-num">5.3</span><span class="toc-text">Sources of disagreement</span></a></li><li><a href="#sec:cost"><span class="toc-num">5.4</span><span class="toc-text">Cost</span></a></li></ol></li><li><a href="#sec:robust-main"><span class="toc-num">6</span><span class="toc-text">Robustness</span></a></li><li><a href="#sec:next"><span class="toc-num">7</span><span class="toc-text">Conclusion</span></a></li><li><a href="#references"><span class="toc-num"></span><span class="toc-text">References</span></a></li><li class="toc-group"><span class="toc-group-title">Appendices</span><ol class="toc-sub"><li><a href="#app:prior"><span class="toc-num">A</span><span class="toc-text">Prior transcriptions of the AMD</span></a></li><li><a href="#app:protocol"><span class="toc-num">B</span><span class="toc-text">Scoring protocol</span></a></li><li><a href="#app:key"><span class="toc-num">C</span><span class="toc-text">The printed key for 1921</span></a></li><li><a href="#app:corr"><span class="toc-num">D</span><span class="toc-text">Linkage sensitivity and stage decomposition</span></a></li><li><a href="#app:gemini"><span class="toc-num">E</span><span class="toc-text">The MLLM workflow in detail</span></a></li><li><a href="#app:repro"><span class="toc-num">F</span><span class="toc-text">Reproducibility statement</span></a></li><li><a href="#app:fields"><span class="toc-num">G</span><span class="toc-text">Field tables by workflow</span></a></li><li><a href="#app:cost"><span class="toc-num">H</span><span class="toc-text">Cost accounting</span></a></li><li><a href="#app:robust"><span class="toc-num">I</span><span class="toc-text">Robustness to the page frame</span></a></li></ol></li></ol></nav></details></aside>
+<main id="paper" tabindex="-1">
+<p class="label">Data note · Revision 18 November 2026 · Source 9606bf3</p>
+<section id="title"
+class="level1 unnumbered unlisted paper-title front-matter">
+<h1 class="unnumbered unlisted paper-title">The American Medical
+Directory Panel</h1>
+<div class="subtitle">
+<p>Comparing AI-Assisted and LLM Transcription with Manual Data Entry at
+Scale<a href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a></p>
+</div>
+<div class="paper-actions"><a class="button primary" href="paper.pdf">PDF version</a> <a class="button secondary" href="https://doi.org/10.5281/zenodo.24325312" aria-label="Zenodo preprint, doi:10.5281/zenodo.24325312">Zenodo preprint</a> <a class="button secondary" href="https://arxiv.org/abs/2611.25218" aria-label="arXiv, arXiv:2611.25218">arXiv</a><p class="doi">doi:10.5281/zenodo.24325312</p><p class="doi">This version: doi:10.5281/zenodo.24391776</p></div>
+<div class="authors">
+<p><span class="author">Christian M. Dahl</span>, <span
+class="author">Sophie Li</span>, <span class="author">Rasmus Emil
+Nyholm</span>, <span class="author">Maja U. Pedersen</span>, <span
+class="author">Anthony Wray<a href="#fn2" class="footnote-ref"
+id="fnref2" role="doc-noteref"><sup>2</sup></a></span></p>
+</div>
+<div class="front-line">
+<p>University of Southern Denmark</p>
+</div>
+<div class="front-line">
+<p>18 November 2026</p>
+</div>
+</section>
+<section id="abstract" class="level2 unnumbered unlisted abstract">
+<h2 class="unnumbered unlisted">Abstract</h2>
+<div class="singlespace">
+<p>How closely does machine transcription agree with manual double-entry
+data? We digitize the 1912 and 1921 editions of the American Medical
+Directory, a national register of US physicians with roughly 140,000 and
+150,000 entries in the two volumes, and compare five machine-extraction
+workflows with a full-count double-entered manual transcription. Like
+many historical directories, the AMD is semi-structured rather than
+tabular, so errors arise from misreading the layout as well as the text.
+A script that parses commercial OCR text using rules written by coding
+agents recovers about 97 percent of manually transcribed records with
+similar precision, more than a multimodal language model workflow
+(gemini-2.0-flash) that reads the page images and the OCR text. When the
+two methods fail, they fail on partly overlapping sets of records, so
+reconciling their outputs raises both recall and precision to about 98
+percent. An open-weight LLM pipeline run on a local GPU server falls
+between the parser and the multimodal workflow in recall, and replacing
+the commercial OCR model with an open-source alternative lowers its
+recall by only about 2 percentage points. As the manual transcription’s
+own error rate is unknown, these rates measure agreement rather than
+accuracy. Direct processing charges for the commercial OCR and
+multimodal workflow were about €0.03 per page, compared with €14.70 per
+page for manual transcription. We release the data and codebook under
+CC BY 4.0.</p>
+</div>
+<p><strong>JEL:</strong> C81, I11, N31, N32</p>
+<p><strong>Keywords:</strong> American Medical Directory; physicians;
+historical directories; OCR; large language models; transcription;
+record linkage; United States, 1912, 1921</p>
+</section>
+<section id="sec:intro" class="level2">
+<h2><span class="header-section-number">1</span> Introduction</h2>
+<p>How closely does machine transcription agree with manual double-entry
+data? The time required to key and clean historical records limits both
+dataset size and the questions economic historians can investigate <span
+class="citation" data-cites="gutmann2018bigdata">(<a
+href="#ref-gutmann2018bigdata" role="doc-biblioref">Gutmann, Merchant,
+and Roberts 2018</a>)</span>. Advances in Optical Character Recognition
+(OCR) and large language models (LLMs) offer the potential to reduce the
+cost of digitizing historical sources, making large-scale transcription
+increasingly feasible <span class="citation"
+data-cites="dell2025deep Ferrara2026Guide">(<a href="#ref-dell2025deep"
+role="doc-biblioref">Dell 2025</a>; <a href="#ref-Ferrara2026Guide"
+role="doc-biblioref">Ferrara 2026</a>)</span>. However, the benefits of
+automation depend on the accuracy of the resulting data. While automated
+transcription can reduce data-entry costs, assessing the quality of
+transcription still requires manual human review and raises new
+questions about validation. In particular, small character-level error
+rates can translate into substantial disagreement across records
+containing many fields <span class="citation"
+data-cites="correia2023digitizing">(<a href="#ref-correia2023digitizing"
+role="doc-biblioref">Correia and Luck 2023</a>)</span>. Evaluating
+transcription accuracy therefore becomes critical.</p>
+<p>Such evaluation raises a practical problem. Researchers may benchmark
+machine-generated data against a human-created reference dataset treated
+as ground truth, yet the reference dataset may itself contain
+transcription errors. Measures of agreement with a reference dataset
+therefore conflate machine transcription errors with errors in the
+benchmark, so agreement with a manual transcription does not necessarily
+establish accuracy <span class="citation"
+data-cites="DellRambachan2026Measurement">(<a
+href="#ref-DellRambachan2026Measurement" role="doc-biblioref">Dell and
+Rambachan 2026</a>)</span>. This makes it difficult to determine which
+extraction strategy is most accurate. As AI-assisted digitization
+becomes more common, distinguishing agreement from accuracy becomes
+increasingly important for researchers releasing and using
+machine-generated historical datasets.</p>
+<p>We study this question using the 1912 and 1921 editions of the
+<em>American Medical Directory</em> (AMD), a nationwide register of
+physicians in the United States published by the American Medical
+Association. The AMD records physician names, locations, medical
+schools, graduation years, licensing year, and professional credentials,
+making it one of the largest and most comprehensive individual-level
+sources on the early twentieth-century American medical profession.
+Despite its research potential, the directory remains difficult to use
+at scale because its information is embedded within compact,
+semi-structured entries rather than structured tables.</p>
+<p>The AMD belongs to a broad class of historical sources that is common
+but difficult to digitize: directories and registers that list
+individuals under place or category headings in compact, abbreviated
+entries, such as city and trade directories, professional registers, and
+membership rolls. Unlike tables, such sources have no fixed rows or
+columns. Entries in the AMD are arranged beneath town headings and
+contain numerous abbreviations, irregular formatting conventions, and
+nested record components. Errors can therefore arise not only from
+misreading individual fields but also from failing to identify record
+boundaries or town headings. Because a town heading determines the
+location assigned to every physician listed beneath it, a single error
+can affect many subsequent records. The AMD therefore allows us to
+distinguish errors in reading individual fields from errors in
+reconstructing the structure of the directory itself, a distinction that
+does not arise in the tabular sources studied in recent work <span
+class="citation" data-cites="backerperal2025llms">(<a
+href="#ref-backerperal2025llms" role="doc-biblioref">Bäcker-Peral,
+Meursault, and Severen 2026</a>)</span>.</p>
+<p>To examine both kinds of error, we compare five extraction workflows
+against a large double-entered manual transcription of both editions,
+using the same pages, record-linkage rule, and measures for each.
+Precision is the share of a workflow’s extracted records that link to a
+record in the manual transcription, and recall is the share of
+transcribed records that the workflow recovers; we compute both for
+whole records and for individual fields. Three workflows start from the
+same commercial OCR: a multimodal large language model that reads page
+images and OCR text, a deterministic parser of OCR text whose rules were
+written with coding agents, and a multi-stage open-weight LLM pipeline
+that reads OCR text alone. A fourth applies the same open-weight
+pipeline to OCR from an open-source model, which changes the OCR step
+(the engine and its column segmentation) and nothing downstream. The
+fifth, the combined table, reconciles the multimodal LLM and parser
+outputs field by field and forms the basis of the public release. Our
+data release includes 138,800 and 148,040 rows from the two editions,
+including cross-reference lines, covering 48 states and the District of
+Columbia. Because the case for automation rests on cost, we also compare
+the direct processing charges of the commercial OCR and MLLM workflow
+with those of the manual transcription.</p>
+<p>Three results stand out. First, among the four single workflows, the
+deterministic parser has the highest recall in both editions. Its
+record-level precision and recall are 96.72 and 97.45 percent in 1921
+and 97.54 and 97.36 percent in 1912, higher on both measures than the
+multimodal LLM in both editions (94.11 and 94.13 percent in 1921; 94.89
+and 94.42 percent in 1912) and higher on recall than the open-weight LLM
+pipeline. Replacing the commercial OCR with open-source OCR in that
+pipeline lowers recall by percentage points in 1921 and in 1912. Second,
+when the methods fail, they fail on partly overlapping sets of records.
+The combined table recovers more reference records than either input
+alone, with precision and recall of 98.04 and 98.28 percent in 1921 and
+97.72 and 97.80 percent in 1912. Among cells where only the parser
+agrees with the transcription, most for birth and graduation year are
+entries the MLLM workflow did not link, while most for license year and
+medical school are different values on linked records. The widest gaps
+between methods are in county in both editions and in city in 1921.
+Third, processing charges for the commercial OCR and MLLM workflow are
+far below the price of manual transcription: an estimated €0.03 per
+page, against €14.70 per page for double-entered transcription. This
+comparison excludes engineering, review, and model-development time.
+Even so, digitization projects previously considered prohibitively
+expensive may now be feasible.</p>
+<p>These figures should be read in light of the problem raised above:
+agreement with a reference dataset is not the same as accuracy. Our
+reference is a double-entered transcription whose own error rate is
+unknown, so the reported measures quantify agreement rather than
+scan-verified accuracy. Entries missed by both the machine and the
+transcribers are unobserved, and three of the workflows share the same
+OCR, so agreement among them is weaker evidence than agreement among
+independent readings would be. We therefore view the paper as a
+methodological benchmark of alternative extraction strategies and a
+description of the released data. A subsequent study will adjudicate
+disagreements directly against the page images and estimate accuracy
+using an independently verified gold-standard sample.</p>
+<p>This paper contributes to a growing literature on large-scale
+historical transcription. Existing workflows typically combine
+commercial OCR with pre- and post-processing to transform scanned
+sources into structured datasets <span class="citation"
+data-cites="correia2023digitizing">(<a href="#ref-beach2023historical"
+role="doc-biblioref">Beach and Hanlon 2023</a>)</span>. Other projects
+have developed specialized layout-detection and OCR pipelines for large
+newspaper collections <span class="citation"
+data-cites="carlson2024efficient">(<a href="#ref-carlson2024efficient"
+role="doc-biblioref">Carlson, Bryan, and Dell 2024</a>)</span>, tabular
+documents <span class="citation" data-cites="Dahl2023">(<a
+href="#ref-Dahl2023" role="doc-biblioref">Dahl et al. 2023</a>)</span>,
+and historical administrative directories <span class="citation"
+data-cites="fleischhacker2025enhancing">(<a
+href="#ref-fleischhacker2025enhancing"
+role="doc-biblioref">Fleischhacker, Kern, and Göderle 2025</a>)</span>;
+<span class="citation" data-cites="dell2025deep">Dell (<a
+href="#ref-dell2025deep" role="doc-biblioref">2025</a>)</span> surveys
+these approaches. More recently, large language models have been used to
+extract structured records directly from page images. <span
+class="citation" data-cites="backerperal2025llms">Bäcker-Peral,
+Meursault, and Severen (<a href="#ref-backerperal2025llms"
+role="doc-biblioref">2026</a>)</span> find high agreement with a
+human-transcribed gold standard for historical county tables at
+substantially lower cost, with regression estimates of the same sign and
+significance, and <span class="citation"
+data-cites="Ferrara2026Guide">Ferrara (<a href="#ref-Ferrara2026Guide"
+role="doc-biblioref">2026</a>)</span> outlines a workflow that holds
+hand-coded validation data out of prompt development and model
+selection. We add to this literature in three ways. First, we compare
+multimodal, text-based LLM, and rule-based extraction on a common source
+and reference dataset, and we vary the OCR engine while holding the
+downstream pipeline fixed. Second, we study a directory-style source
+whose difficulty lies in its structure as much as in its characters, and
+we report which records and fields the methods fail to match. Third, we
+set out what agreement measures can and cannot establish when both
+machine-generated and human-generated transcriptions contain errors.</p>
+<p>We also add to work that digitizes the AMD itself. Previous studies
+rely on hand-keyed samples for particular states and editions <span
+class="citation" data-cites="moehling2019medical">(<a
+href="#ref-moehling2019medical" role="doc-biblioref">Moehling et al.
+2020</a>)</span>, vendor double-entry transcriptions of North Carolina
+<span class="citation"
+data-cites="HollingsworthKarbownikThomassonWray2024">(<a
+href="#ref-HollingsworthKarbownikThomassonWray2024"
+role="doc-biblioref">Hollingsworth et al. 2024</a>)</span> and of the
+1906 edition for Southern and adjacent states <span class="citation"
+data-cites="chrisinger2024black">(<a href="#ref-chrisinger2024black"
+role="doc-biblioref">Chrisinger 2024</a>)</span>, and OCR extractions of
+single editions checked against printed physician counts <span
+class="citation" data-cites="smith2017digitizing">(<a
+href="#ref-smith2017digitizing" role="doc-biblioref">Smith
+2017</a>)</span> or published state totals <span class="citation"
+data-cites="AlsanNeberai2026QJE">(<a href="#ref-AlsanNeberai2026QJE"
+role="doc-biblioref">Alsan and Neberai 2026</a>)</span>. We provide
+national transcriptions of two editions validated against a
+double-entered reference. Appendix <a href="#app:prior">A</a> summarizes
+earlier AMD datasets and their reported validation procedures.</p>
+<p>Section <a href="#sec:source">2</a> describes the directory.
+Section <a href="#sec:data">3</a> describes the page images, the
+extraction workflows, and the public release. Section <a
+href="#sec:methods">4</a> describes the validation samples, the
+record-linkage rule, and the agreement measures, and Section <a
+href="#sec:results">5</a> reports results for both editions. Section <a
+href="#sec:robust-main">6</a> reports robustness checks, and Section <a
+href="#sec:next">7</a> discusses limitations and concludes with the
+planned adjudication against the page images. Appendix <a
+href="#app:protocol">B</a> documents the comparison protocol.</p>
+</section>
+<section id="sec:source" class="level2">
+<h2><span class="header-section-number">2</span> Background and Data:
+the American Medical Directory</h2>
+<p>The American Medical Directory (AMD) is a register of legally
+qualified and practicing physicians in the United States and Canada
+published every two to three years by the American Medical Association
+(AMA) starting in 1906 <span class="citation"
+data-cites="AMA1912AMD AMA1921AMD">(<a href="#ref-AMA1912AMD"
+role="doc-biblioref">American Medical Association 1912</a>, <a
+href="#ref-AMA1921AMD" role="doc-biblioref">1921</a>)</span>. The AMA
+compiled the AMD volumes from an index card collection that was updated
+daily using reports from licensing boards and lists of newly graduated
+physicians <span class="citation" data-cites="AMA1912AMD">(<a
+href="#ref-AMA1912AMD" role="doc-biblioref">American Medical Association
+1912</a>)</span>.<a href="#fn3" class="footnote-ref" id="fnref3"
+role="doc-noteref"><sup>3</sup></a> While the completeness of the AMD
+throughout its publication run remains an open question, the earliest
+editions may have omitted some physicians.<a href="#fn4"
+class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>
+Among sources on the medical profession during the early twentieth
+century, the directory uniquely captures individual physicians and their
+characteristics with nationwide coverage, and thus remains an invaluable
+resource for studying medical education and licensing, physician labor
+markets, and the professionalization of medical care. Appendix <a
+href="#app:prior">A</a> provides an overview of prior hand-keyed
+transcriptions of AMD volumes and samples, and how these have been used
+in previous research.</p>
+<p>Figure <a href="#fig:entry">1</a> shows a sample page of physician
+entries from the 1921 AMD volume, on the left, and closeups of two
+individual physician entries and one town heading with explanations of
+each field, on the right <span class="citation"
+data-cites="AMA1921AMD">(<a href="#ref-AMA1921AMD"
+role="doc-biblioref">American Medical Association 1921</a>)</span>. The
+physician directory represents one section in a vast volume that
+includes listings of medical officers, medical schools, medical
+libraries, and hospitals. Each volume covers physicians in every state
+in the continental United States and the District of Columbia, as well
+as the US territories and Canada. The directory is organized
+hierarchically by state and town; within each state, towns are listed
+alphabetically. Each location heading reports the town name, its
+population, and county, and the physicians associated with that location
+are listed beneath it in alphabetical order. In some cases, a physician
+is listed in full under one town and appears elsewhere as a
+cross-reference.</p>
+<p>The compact physician entries report medical education, credentials,
+professional affiliations, and details about the physician’s practice. A
+typical record follows a fixed order and format: the physician’s name,
+sect letter, two-digit birth year, medical school code and two-digit
+graduation year, two-digit license year, membership symbol, specialty
+code, home address, and office address with office hours. Depending on
+the edition and page layout, the birth year and license year may be
+printed in parentheses. The exact conventions and entry order vary
+slightly across and within editions and do not always match the printed
+edition-specific key included in the directory. The abbreviations that
+appear in the AMD physician entries are explained in detail for the 1921
+edition in Appendix <a href="#app:key">C</a>.</p>
+<p>This project draws on physician entries from every state in the
+continental United States and the District of Columbia in the 1912 and
+1921 editions of the American Medical Directory <span class="citation"
+data-cites="AMA1912AMD AMA1921AMD">(<a href="#ref-AMA1912AMD"
+role="doc-biblioref">American Medical Association 1912</a>, <a
+href="#ref-AMA1921AMD" role="doc-biblioref">1921</a>)</span>.<a
+href="#fn5" class="footnote-ref" id="fnref5"
+role="doc-noteref"><sup>5</sup></a> In this data note, we focus on a
+physician’s name and location, the key dates (birth, graduation, and
+license year), and the medical school codes. Many of the remaining
+symbols require separate processing that lies outside the scope of this
+study.</p>
+<figure id="fig:entry">
+<a href="figures/entry-anatomy-1920.webp" class="figure-zoom"
+aria-label="Open Figure 1 full size"><img
+src="figures/entry-anatomy-1280.webp"
+srcset="figures/entry-anatomy-640.webp 640w, figures/entry-anatomy-1280.webp 1280w, figures/entry-anatomy-1920.webp 1920w"
+decoding="async" loading="lazy" sizes="(min-width: 60rem) 56rem, 100vw"
+width="1280" height="780"
+alt="A page of the 1921 directory and the parts of an entry" /></a>
+<figcaption><span class="caption-label">Figure 1. </span>A page of the
+1921 directory and the parts of an entry</figcaption>
+</figure>
+<div class="minipage">
+<p><em>Notes:</em> Page 566 of the 1921 edition (Kansas), photographed
+from a library copy; the photograph is straightened, evenly lit and
+tinted, and each enlargement is straightened separately. The green box
+marks a town heading, which gives the town, its population and its
+county; every physician listed beneath it is assigned to that town. The
+orange box, marked with an asterisk, is the running head, which names
+the first town on the page and abbreviates the state (KAN., Kansas);
+town headings and entries do not repeat the state. The blue boxes mark
+two entries, enlarged on the right. Example 1, under Chanute, shows a
+home address, an office address and office hours; example 2, under
+Chetopa, shows the name, sect, birth year, school, graduation year,
+license year, Fellowship mark and specialty code. Labels follow the 1921
+key (Appendix <a href="#app:key">C</a>) and the list of medical colleges
+printed in the same volume. Other pages of the 1921 volume print a
+second layout, with the birth year and license year in parentheses and
+the Fellowship mark after the birth year. Source: <span class="citation"
+data-cites="AMA1921AMD">American Medical Association (<a
+href="#ref-AMA1921AMD" role="doc-biblioref">1921</a>)</span>.</p>
+</div>
+</section>
+<section id="sec:data" class="level2">
+<h2><span class="header-section-number">3</span> Digitizing the
+Directory: OCR and Structured Extraction Pipelines</h2>
+<p>This section sets out the challenges with structured output
+extraction from the AMD, describes the page images used as source inputs
+and the derived OCR outputs, explains the extraction methods, and
+summarizes the structure of the public data release.</p>
+<p>The semi-structured text of the physician entries and their
+organizational structure make the AMD difficult to digitize. As the town
+heading determines the location assigned to every physician listed
+beneath it, errors in identifying a heading can affect many subsequent
+records even when the individual entries themselves are read correctly.
+However, the relevant town may appear in the page header, in a different
+column on the same page, or on a separate page altogether. Thus, the
+assignment of a physician entry to the correct location requires
+judgment over what constitutes an entry or a town header, in addition to
+preserving context across images or image segments. These features make
+the AMD fundamentally different from tabular sources extracted at scale
+by other recent studies <span class="citation"
+data-cites="backerperal2025llms">(<a href="#ref-backerperal2025llms"
+role="doc-biblioref">Bäcker-Peral, Meursault, and Severen
+2026</a>)</span>. Successful extraction therefore requires not only
+accurate character recognition but also correct identification of towns
+and record boundaries. For this reason, performance depends on
+recovering the structure of the document as well as the contents of
+individual entries.</p>
+<section id="sec:ocr" class="level3">
+<h3><span class="header-section-number">3.1</span> Page images and
+OCR</h3>
+<p>Figure <a href="#fig:pipeline">2</a> provides an overview of the
+image pre-processing, OCR reading, structured output extraction, and
+validation workflows compared in this paper. Given that existing
+digitized versions of the AMD volumes available in the public domain
+consist of low-resolution color scans or poor-quality black and white
+scans, we obtained high-resolution digital images taken from physical
+copies of the AMD volumes as the source images for our extraction
+pipelines.<a href="#fn6" class="footnote-ref" id="fnref6"
+role="doc-noteref"><sup>6</sup></a> The pre-processing step consisted of
+cropping to ensure each image contained only the page itself, as well as
+a DPI adjustment.<a href="#fn7" class="footnote-ref" id="fnref7"
+role="doc-noteref"><sup>7</sup></a> These images represent a common
+input across all our extraction workflows.</p>
+</section>
+<section id="sec:readings" class="level3">
+<h3><span class="header-section-number">3.2</span> Five machine
+extraction workflows</h3>
+<p>We evaluate five machine extraction workflows that each produce a
+structured dataset derived from page images of the directory. Table <a
+href="#tab:arms">D.2</a> (Appendix <a href="#app:corr">D</a>) summarizes
+their inputs and outputs. All extraction methods begin with the same
+underlying page images. Four of the workflows rely on OCR output
+generated by Azure Document Intelligence, a proprietary cloud API
+service that extracts both text and layout information (bounding box
+coordinates). We processed every page image with physician entries in
+the 1912 and 1921 editions during January 2026.</p>
+<figure id="fig:pipeline">
+<a href="figures/rma-ocr-pipeline.svg" class="figure-zoom"
+aria-label="Open Figure 2 full size"><img
+src="figures/rma-ocr-pipeline.svg" decoding="async" loading="lazy"
+width="1600" height="890" alt="From scans to the release tables" /></a>
+<figcaption><span class="caption-label">Figure 2. </span>From scans to
+the release tables</figcaption>
+</figure>
+<div class="minipage">
+<p><em>Notes:</em> Solid arrows indicate data flow and the dashed arrow
+indicates page selection for image-based extraction. The manual
+transcription is used for validation and for selecting release-cleaning
+procedures, but it does not directly supply reconciled field values.
+Cross-edition linkage and record collapse occur downstream of the
+workflow examined in this paper. Source: project workflow
+documentation.</p>
+</div>
+<section id="sec:gemini" class="level4">
+<h4><span class="header-section-number">3.2.1</span> Multimodal language
+model workflow</h4>
+<p>The multimodal language model (MLLM) workflow prompts the Google
+Gemini API and uses the gemini-2.0-flash model to extract information
+from the directory in two stages.<a href="#fn8" class="footnote-ref"
+id="fnref8" role="doc-noteref"><sup>8</sup></a> The first stage reads
+the OCR text generated by Azure Document Intelligence to identify the
+town and county headings as well as the physician names listed beneath
+them. The second stage reads the page image and extracts the
+biographical fields defined by the directory key. A carry-forward
+mechanism allows location information to be filled in across page and
+column boundaries (Appendix <a href="#app:gemini">E</a> describes the
+passes and matching rounds in detail). A deterministic linking algorithm
+then combines the list of towns and names from the first stage with the
+biographical information from the second into a single record-level
+dataset. The matching procedure blocks on page and name, while
+subsequent matching rounds allow for fuzzy matches on name and
+incorporate location information. A final stage uses the OCR text to
+fill missing biographical fields when the image-reading stage fails to
+extract them. This is the only stage in which OCR text contributes
+biographical information directly.</p>
+</section>
+<section id="sec:parser" class="level4">
+<h4><span class="header-section-number">3.2.2</span> AI-assisted parser
+and combined workflow</h4>
+<p>As an alternative to prompting an MLLM via API calls, we prompted a
+coding agent to develop a deterministic script that parses the Azure OCR
+text. The AI-assisted parser follows a set of rule-based instructions to
+identify document sections, locate town headings, separate individual
+physician entries, and extract fields according to the conventions
+defined in the directory key. For every extracted field, it retains both
+the original OCR text and the cleaned value.</p>
+<p>The combined workflow aligns the outputs of the MLLM and the
+AI-assisted parser at the record level to produce a combined data table.
+For each field, it retains both extracted values, records the rule used
+to determine the release value, and preserves the alternative value for
+reference. Reconciliation uses only the two readings and fixed
+conventions (the medical-school code list, year-typo tables and county
+rules), not the manual transcription.</p>
+</section>
+<section id="sec:ocrparser" class="level4">
+<h4><span class="header-section-number">3.2.3</span> Open-source
+GPU-based OCR and LLM workflows</h4>
+<p>As one of our objectives is to evaluate the quality of data produced
+by open-source models in comparison to frontier models, our final two
+workflows use open weights and run on a GPU server. We start with the
+same Azure OCR text as the MLLM workflow, and replace the API calls to
+the gemini-2.0-flash model with a local deployment of DeepSeek-V4-Flash
+on a GPU server with temperature 0.01 to minimize variation across runs.
+The same prompts are used for both editions. Unlike the MLLM, the
+multi-stage open LLM extraction pipeline operates only on OCR text
+rather than page images. The first stage identifies town headings and
+physician names on each page. Outputs are checked automatically for
+obvious failures, such as implausibly short name lists, and the model
+call is repeated when necessary. The OCR text is then divided into
+physician-specific snippets, which form the input for the second stage.
+A second model call extracts the biographical fields defined by the
+directory key.</p>
+<p>Finally, we assess an end-to-end open-source pipeline. The open
+OCR-LLM workflow uses OCR text generated by the open-source Chandra OCR
+model run locally on the GPU server, rather than the Azure OCR text.
+Pages are segmented into their printed columns using a table parsing
+algorithm prior to processing by Chandra. These open LLM workflows
+produce two additional datasets that are evaluated against the same
+validation sample.</p>
+</section>
+</section>
+<section id="sec:release" class="level3">
+<h3><span class="header-section-number">3.3</span> The public data
+release</h3>
+<p>The public data release through Zenodo (version 1.0.0, DOI
+10.5281/zenodo.23945788) contains 138,800 rows for the 1912 edition and
+148,040 rows for the 1921 edition, covering physicians in every state in
+the continental United States and the District of Columbia. Table <a
+href="#tab:desc">1</a> summarizes the public release tables. For each
+edition, the release includes a primary table, the combined workflow’s
+output, which also holds the cross-reference lines. Each observation is
+identified by edition and record identifier. The outputs of the open LLM
+and open OCR-LLM workflows are provided as separate tables (see
+Section <a href="#sec:results">5</a> and Appendix <a
+href="#app:protocol">B</a> for details). They are linked to the primary
+table through edition and record identifiers and include match-status
+information, but are distributed separately rather than merged into it.
+The agreement figures for the combined table in Section <a
+href="#sec:results">5</a> describe the reconciled output with its county
+replaced by the cleaned county; Table <a href="#tab:cleaning">G.3</a>
+reports the release table’s columns as read and after cleaning. The
+release holds two cross-sections; it contains no identifier that links a
+physician across editions.</p>
+<p>The first public release covers the state sections of the two
+volumes, corresponding to the material included in the manual
+transcription. The release tables include all fields evaluated in
+Section <a href="#sec:results">5</a>, with as-read and cleaned values
+for the years, medical school and county, and the workflow that found
+each entry. Additional extracted fields, including specialty, addresses
+and office hours, military information, printed marks (membership,
+fellowship, sect, and <em>col.</em>), and town populations, will remain
+unpublished until their validation is complete. These fields are
+documented in the codebook.</p>
+<p>The release package also contains documentation, a codebook, a
+manifest identifying the included editions, checksums, citation
+information, and a CC BY 4.0 license. Both editions are in the public
+domain in the United States, which provides the basis for releasing the
+data tables. Appendix <a href="#app:key">C</a> lists the printed key
+elements and the release field each one feeds. The Zenodo record also
+includes a preferred citation.</p>
+<div class="threeparttable">
+<div id="tab:desc" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table 1">
+<table>
+<caption><span class="caption-label">Table 1. </span>Public Data
+Release: Descriptive Statistics</caption>
+<thead>
+<tr>
+<th style="text-align: left;"></th>
+<th style="text-align: right;">1912</th>
+<th style="text-align: right;">1921</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Listed physicians</td>
+<td style="text-align: right;">137,303</td>
+<td style="text-align: right;">145,608</td>
+</tr>
+<tr>
+<td style="text-align: left;">Cross-reference lines</td>
+<td style="text-align: right;">1,497</td>
+<td style="text-align: right;">2,432</td>
+</tr>
+<tr>
+<td style="text-align: left;">States and DC with coded rows</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">49</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Northeast</td>
+<td style="text-align: right;">39,150 (28.5)</td>
+<td style="text-align: right;">41,787 (28.7)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Midwest</td>
+<td style="text-align: right;">47,238 (34.4)</td>
+<td style="text-align: right;">48,185 (33.1)</td>
+</tr>
+<tr>
+<td style="text-align: left;">South</td>
+<td style="text-align: right;">39,195 (28.5)</td>
+<td style="text-align: right;">41,292 (28.4)</td>
+</tr>
+<tr>
+<td style="text-align: left;">West</td>
+<td style="text-align: right;">11,657 (8.5)</td>
+<td style="text-align: right;">14,284 (9.8)</td>
+</tr>
+<tr>
+<td style="text-align: left;">State not resolved to a code</td>
+<td style="text-align: right;">63 (0.0)</td>
+<td style="text-align: right;">60 (0.0)</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Birth year</td>
+<td style="text-align: right;">73.8</td>
+<td style="text-align: right;">89.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">Medical school</td>
+<td style="text-align: right;">96.6</td>
+<td style="text-align: right;">97.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">Graduation year</td>
+<td style="text-align: right;">96.6</td>
+<td style="text-align: right;">97.6</td>
+</tr>
+<tr>
+<td style="text-align: left;">License year</td>
+<td style="text-align: right;">78.0</td>
+<td style="text-align: right;">85.2</td>
+</tr>
+<tr>
+<td style="text-align: left;">City</td>
+<td style="text-align: right;">100.0</td>
+<td style="text-align: right;">100.0</td>
+</tr>
+<tr>
+<td style="text-align: left;">County</td>
+<td style="text-align: right;">99.8</td>
+<td style="text-align: right;">99.5</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Listed rows are printed entries, not distinct people; cross-reference
+lines are counted on their own row. Census regions are the Bureau’s four
+regions over the 48 states and the District of Columbia; a row whose
+state is not resolved to a code is retained and counted on its own line.
+A field has a value when its cleaned column is non-missing; county and
+medical school are counted from the values as read. Source: descriptive
+statistics calculated from the public data release.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="sec:methods" class="level2">
+<h2><span class="header-section-number">4</span> Validation</h2>
+<section id="sec:reference" class="level3">
+<h3><span class="header-section-number">4.1</span> Double-entry manual
+transcription</h3>
+<p>We validate our machine-extraction workflows against a hand-keyed
+double-entry full-count transcription of the 1912 and 1921 AMD volumes.
+Each record was independently transcribed by two data entry workers and
+reconciled by a quality assurance checker. The manual transcription was
+completed during 2022, before LLM-based transcription tools were
+available.<a href="#fn9" class="footnote-ref" id="fnref9"
+role="doc-noteref"><sup>9</sup></a> The transcription includes
+physicians located in 48 US states and the District of Columbia, while
+excluding the addendum and address-unknown lists that appear at the back
+of the volumes. The resulting spreadsheets contain one row per printed
+entry and one column for each recorded field. We treat the compiled
+transcription as our reference dataset for evaluation.</p>
+</section>
+<section id="sec:population" class="level3">
+<h3><span class="header-section-number">4.2</span> Reference population
+for validation</h3>
+<p>Our reference population is the set of physician entries on printed
+volume pages for which we have a complete transcription. Table <a
+href="#tab:pds">D.1</a> (Appendix <a href="#app:corr">D</a>) summarizes
+the page coverage of the reference population in the 1912 and 1921 AMD
+volumes. For 1921, the manually transcribed reference dataset covers
+1,233 pages in the printed directory and 145,064 cleaned rows. One
+complication with the manual transcription is that the data entry
+workers read from lower-quality scans of the 1912 and 1921 AMD volumes,
+rather than the high-resolution digital images. Consequently, some
+scanned pages or column segments did not contain any legible content;
+transcribers flagged such pages or columns in the output. After
+excluding pages with incomplete reference data, around 10 to 16 percent
+of the total, we evaluate all machine extraction methods on a sample
+consisting of 1,036 pages and 124,167 cleaned rows (Section <a
+href="#sec:measures">4.4</a>). For 1912, the manual transcription covers
+1,006 pages while the reference population consists of 903 pages
+containing 123,726 cleaned rows after excluding incomplete pages.</p>
+</section>
+<section id="sec:corr" class="level3">
+<h3><span class="header-section-number">4.3</span> Record linkage to the
+validation sample</h3>
+<p>In the absence of a unique record identifier, we apply a record
+linkage procedure to merge the reference population from the manual
+transcription to the output of each machine-extraction workflow. The
+goal is to identify which extracted records correspond to which
+transcribed records. The resulting links form the basis for the measures
+of record-level agreement.</p>
+<p>Prior to linking, we standardize the given names, medical school
+codes, two-digit years, and county names in the manual transcription and
+the extraction outputs (See Appendix <a href="#app:protocol">B</a> for
+details). We match records using combinations of page number and
+physician name whenever these identifiers are unique in both datasets.
+Remaining ambiguous cases are resolved using state and city information,
+but only when these fields uniquely identify a match in both datasets.
+School codes and years are never used to establish a link. Records in
+the manual transcription that cannot be linked, and ties that cannot be
+resolved, remain unmatched and continue to count toward precision and
+recall denominators. Linkage is performed on the full set of extracted
+records before the analysis frame is applied. A field value can agree
+only on a linked record; values on unlinked records stay in the field
+denominators and count as disagreements.</p>
+</section>
+<section id="sec:measures" class="level3">
+<h3><span class="header-section-number">4.4</span> Precision and recall
+measures</h3>
+<p>The central question in this paper is how closely each machine
+extraction method agrees with the reference population from the manual
+transcription. We validate the extraction methods by evaluating
+performance at both the record and field level. For a method
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>,
+let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>O</mi><mi>m</mi></msub><annotation encoding="application/x-tex">O_m</annotation></semantics></math>
+denote the number of extracted records,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+the number of reference records (on pages with complete transcription),
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>m</mi></msub><annotation encoding="application/x-tex">L_m</annotation></semantics></math>
+the number of linked records produced by the linkage procedure described
+in Section <a href="#sec:corr">4.3</a>. Record-level precision is
+defined as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">Precision</mtext><mi>m</mi></msub><mo>=</mo><msub><mi>L</mi><mi>m</mi></msub><mi>/</mi><msub><mi>O</mi><mi>m</mi></msub></mrow><annotation encoding="application/x-tex">\text{Precision}_m=L_m/O_m</annotation></semantics></math>,
+that is, the share of extracted records that can be linked to a
+reference record. Record recall is defined as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">Recall</mtext><mi>m</mi></msub><mo>=</mo><msub><mi>L</mi><mi>m</mi></msub><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\text{Recall}_m=L_m/N</annotation></semantics></math>,
+or the share of reference records recovered by the extraction method. A
+reference record is recovered when it receives a one-to-one link in the
+first or second pass: a page-and-name key that is unique on both sides,
+or, within ambiguous groups, a unique state–city pair (Section <a
+href="#sec:corr">4.3</a>). Field-level measures are calculated
+similarly. Precision divides the number of agreeing linked values by the
+total number of scorable output values produced by a method, while
+recall divides the number of agreeing linked values by the number of
+scorable values in the reference dataset. Cells containing multiple
+years or multiple school codes contribute each individual value to the
+comparison. Unmatched records count as disagreements, while cases where
+both sides are missing are excluded.</p>
+<p>These measures quantify agreement with the reference population used
+for validation rather than accuracy relative to the printed directory.
+The distinction is important because while double-entry transcription
+reduces keying errors, the reference data may itself contain errors. To
+illustrate, consider a set of aligned records. Suppose the extraction
+method is incorrect with probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>m</mi></msub><annotation encoding="application/x-tex">e_m</annotation></semantics></math>
+and the reference transcription is incorrect with probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>r</mi></msub><annotation encoding="application/x-tex">e_r</annotation></semantics></math>.
+If errors are independent and never produce the same incorrect value,
+the probability of agreement is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi>m</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>e</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>e</mi><mi>r</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">A_m=(1-e_m)(1-e_r).</annotation></semantics></math>
+Even in this highly simplified case, observed agreement reflects both
+error rates. Recovering the extraction error rate requires information
+about the accuracy of the reference transcription. Shared errors may
+inflate agreement, while correlated errors invalidate the independence
+assumption altogether. High agreement therefore does not necessarily
+imply high accuracy. This distinction between agreement and accuracy is
+central to the evaluation of machine-generated measurements <span
+class="citation" data-cites="DellRambachan2026Measurement">(<a
+href="#ref-DellRambachan2026Measurement" role="doc-biblioref">Dell and
+Rambachan 2026</a>)</span>. Throughout the paper, the reported precision
+and recall statistics should therefore be interpreted as measures of
+agreement with the validation sample – the share of transcribed entries
+recovered by an extraction method rather than the share of all printed
+physicians recovered from the original volumes. Estimating scan-verified
+accuracy would require an independent transcription of the same pages
+from which to adjudicate against the original page image and estimate
+the error rate of the manual transcription, which is planned for future
+work.</p>
+</section>
+</section>
+<section id="sec:results" class="level2">
+<h2><span class="header-section-number">5</span> Results</h2>
+<p>This section reports the main results for the rate of agreement
+between the machine extraction methods and the cleaned reference
+population used for validation. The measures are reported for the set of
+pages in each edition with a complete manual transcription (903 pages in
+1912 and 1,036 pages in 1921). They quantify agreement with the
+reference transcription rather than scan-verified accuracy. All headline
+comparisons are based on the common precision and recall measures
+defined in Section <a href="#sec:measures">4.4</a>. Record-level
+agreement is reported in Table <a href="#tab:records">2</a>, while
+field-level agreement is summarized in Figure <a
+href="#fig:fields">3</a>.</p>
+<section id="sec:records" class="level3">
+<h3><span class="header-section-number">5.1</span> Record-level
+agreement</h3>
+<p>Table <a href="#tab:records">2</a> provides the main record-level
+comparison across extraction methods. Precision measures the share of
+output records that can be linked to a transcribed record, while recall
+measures the share of transcribed records recovered by a method. We
+focus on comparisons that show how agreement changes when individual
+components of the extraction process are altered.</p>
+<div class="threeparttable">
+<div id="tab:records" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table 2">
+<table>
+<caption><span class="caption-label">Table 2. </span>Record agreement by
+method, 1912 and 1921</caption>
+<tbody>
+<tr>
+<td style="text-align: left;"></td>
+<td colspan="4" style="text-align: center;">1912: 903 pages, 123,726
+reference rows</td>
+<td colspan="4" style="text-align: center;">1921: 1,036 pages, 124,167
+reference rows</td>
+</tr>
+<tr>
+<td style="text-align: left;">Method</td>
+<td style="text-align: right;">Output rows</td>
+<td style="text-align: right;">Links</td>
+<td style="text-align: right;">Prec. (%)</td>
+<td style="text-align: right;">Recall (%)</td>
+<td style="text-align: right;">Output rows</td>
+<td style="text-align: right;">Links</td>
+<td style="text-align: right;">Prec. (%)</td>
+<td style="text-align: right;">Recall (%)</td>
+</tr>
+<tr>
+<td colspan="9" style="text-align: left;"><em>Primary table and its
+component workflows</em></td>
+</tr>
+<tr>
+<td style="text-align: left;">MLLM</td>
+<td style="text-align: right;">123,108</td>
+<td style="text-align: right;">116,817</td>
+<td style="text-align: right;">94.89</td>
+<td style="text-align: right;">94.42</td>
+<td style="text-align: right;">124,195</td>
+<td style="text-align: right;">116,883</td>
+<td style="text-align: right;">94.11</td>
+<td style="text-align: right;">94.13</td>
+</tr>
+<tr>
+<td style="text-align: left;">Parser</td>
+<td style="text-align: right;">123,496</td>
+<td style="text-align: right;">120,462</td>
+<td style="text-align: right;">97.54</td>
+<td style="text-align: right;">97.36</td>
+<td style="text-align: right;">125,101</td>
+<td style="text-align: right;">120,998</td>
+<td style="text-align: right;">96.72</td>
+<td style="text-align: right;">97.45</td>
+</tr>
+<tr>
+<td style="text-align: left;">Combined</td>
+<td style="text-align: right;">123,829</td>
+<td style="text-align: right;">121,010</td>
+<td style="text-align: right;">97.72</td>
+<td style="text-align: right;">97.80</td>
+<td style="text-align: right;">124,477</td>
+<td style="text-align: right;">122,032</td>
+<td style="text-align: right;">98.04</td>
+<td style="text-align: right;">98.28</td>
+</tr>
+<tr>
+<td colspan="9" style="text-align: left;"><em>Open model
+pipelines</em></td>
+</tr>
+<tr>
+<td style="text-align: left;">Open LLM</td>
+<td style="text-align: right;">121,370</td>
+<td style="text-align: right;">118,613</td>
+<td style="text-align: right;">97.73</td>
+<td style="text-align: right;">95.87</td>
+<td style="text-align: right;">122,915</td>
+<td style="text-align: right;">118,070</td>
+<td style="text-align: right;">96.06</td>
+<td style="text-align: right;">95.09</td>
+</tr>
+<tr>
+<td style="text-align: left;">Open OCR-LLM</td>
+<td style="text-align: right;">119,991</td>
+<td style="text-align: right;">115,780</td>
+<td style="text-align: right;">96.49</td>
+<td style="text-align: right;">93.58</td>
+<td style="text-align: right;">121,295</td>
+<td style="text-align: right;">115,136</td>
+<td style="text-align: right;">94.92</td>
+<td style="text-align: right;">92.73</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>This table reports record-level precision and recall for each of the
+five machine extraction workflows and each AMD volume (1912 and 1921)
+compared to the manual transcription. The reference population for
+validation is the set of pages with complete manual transcription
+coverage. Measures reflect agreement with the cleaned validation sample.
+Recall uses the cleaned reference-row count, while precision uses each
+method’s output-row count. All workflows count printed cross-reference
+lines as records, in both denominators and with the same linkage
+key.</p>
+<p>Primary table and its component workflows: multimodal language model
+(MLLM), gemini-2.0-flash on the page image and the Azure OCR text;
+AI-assisted parser, a deterministic parser on the Azure OCR text;
+Combined, the parser and MLLM outputs merged field by field.</p>
+<p>Open model pipelines: Open LLM, a multi-stage LLM pipeline
+(DeepSeek-V4-Flash) on the Azure OCR text; Open OCR-LLM, the same
+pipeline on OCR text from an open-source model (Chandra).</p>
+</div>
+</div>
+<p><em>Overall performance:</em> Three findings stand out. First, the
+AI-assisted parser consistently outperforms the MLLM workflow. Second,
+combining the MLLM and parser outputs produces the highest overall
+recall. Third, agreement is broadly similar across the 1912 and 1921
+editions.</p>
+<p><em>AI-assisted parser versus MLLM workflow:</em> The clearest
+contrast is between the deterministic AI-assisted parser and the MLLM
+workflow. In both editions, the parser links more reference records and
+does so with higher precision. For 1921, the parser achieves precision
+and recall of 96.72/97.45%, compared with 94.11/94.13% for the MLLM
+workflow. The same pattern appears in 1912, where the parser reaches
+97.54/97.36%, compared with 94.89/94.42%. The precision advantage is
+between two and three percentage points in both editions, while recall
+is 3.31 percentage points higher in 1921 and roughly three percentage
+points higher in 1912. For this source, the deterministic parser
+achieves both higher precision and higher recall than the multimodal
+extraction workflow.</p>
+<p><em>Image-based and text-based extraction within the MLLM
+workflow:</em> The MLLM workflow combines two stages implemented with
+gemini-2.0-flash. The location stage operates on OCR text, while the
+biography stage operates on the page image itself. Table <a
+href="#tab:stages">D.4</a> shows that the two stages achieve remarkably
+similar linkage rates. In 1921, the text-based stage links 91.64% of the
+transcribed rows at 95.44% precision, while the image-based stage links
+92.68% at 95.64% precision. The differences are less than half a
+percentage point in precision and about one percentage point in recall.
+These figures do not provide a pure comparison between text and image
+inputs. The two stages perform different tasks: the OCR-based stage
+identifies town headings and physician names, while the image-based
+stage extracts biographical information.</p>
+<p><em>Combining extraction methods:</em> The combined table achieves
+the highest recall in both editions. In 1921 it reaches 98.04/98.28%,
+compared with 96.72/97.45% for the parser. In 1912 it reaches
+97.72/97.80%, compared with 97.54/97.36%. The gains are modest: recall
+rises by 0.83 percentage points in 1921 and 0.44 in 1912, and precision
+by 1.32 and 0.18. The two methods therefore fail on partly overlapping
+sets of records, although most of the reference records that the parser
+does not link remain unlinked in the combined table. The largest
+field-level change is in county (Section <a href="#sec:fields">5.2</a>),
+where most of the gain comes from a county-cleaning rule that we
+selected by comparison with the transcription, not from
+reconciliation.</p>
+<p><em>Open LLM versus AI-assisted parser:</em> The comparison between
+the open LLM workflow and the AI-assisted parser contrasts two OCR-based
+extraction workflows: one based on a multi-stage LLM pipeline and one
+based on deterministic parsing rules. In 1921, the open LLM workflow
+achieves precision 0.66 percentage points below the parser and recall
+2.36 percentage points lower. In 1912, precision is about 0.19
+percentage points higher and recall is about one and a half percentage
+points below the parser (95.87% compared with 97.36%). This comparison
+should be interpreted descriptively rather than causally. The two
+workflows differ not only in their extraction models but also in
+prompting strategy and document handling.</p>
+<p><em>Changing the OCR source:</em> The open OCR-LLM workflow applies
+the same code, model, and prompts as the open LLM workflow, but its OCR
+comes from an open-source model run on pages that are first segmented
+into columns. The contrast therefore changes the OCR step, the engine
+and the column segmentation together, and nothing downstream. Recall
+falls by percentage points in 1921 and in 1912, and precision by and
+(Table <a href="#tab:records">2</a>).</p>
+<p><em>Comparisons across editions:</em> Precision and recall are
+broadly similar across the 1912 and 1921 editions, generally within
+about a point of the other edition for the released workflows. The
+largest exception is the open LLM workflow, whose precision is about 1.7
+percentage points higher in 1912 (97.73%) than in 1921 (96.06%). The
+comparison does not allow us to determine whether this difference arises
+from characteristics of the page images themselves or from
+edition-specific processing decisions. The editions differ in their
+printed keys and, for the MLLM workflow, in the prompts. The open model
+pipelines use the same prompts for both editions, so their difference
+across editions is not a prompt effect.</p>
+</section>
+<section id="sec:fields" class="level3">
+<h3><span class="header-section-number">5.2</span> Field-level
+agreement</h3>
+<p>Record-level agreement masks important differences across fields.
+Figure <a href="#fig:fields">3</a> therefore examines agreement
+separately for names, locations, medical school codes, and other
+biographical characteristics. Exact percentages are reported in Table <a
+href="#tab:fields">G.1</a> (Appendix <a href="#app:fields">G</a>).</p>
+<figure id="fig:fields">
+<a href="figures/field-precision-recall.svg" class="figure-zoom"
+aria-label="Open Figure 3 full size"><img
+src="figures/field-precision-recall.svg" decoding="async" loading="lazy"
+width="497" height="544"
+alt="Field agreement by method, 1912 and 1921" /></a>
+<figcaption><span class="caption-label">Figure 3. </span>Field agreement
+by method, 1912 and 1921</figcaption>
+</figure>
+<div class="minipage">
+<p><em>Notes:</em> Agreement with the cleaned validation sample;
+scan-verified accuracy not assessed. Same frames, links and scorer as
+Table <a href="#tab:records">2</a>. Precision divides agreeing linked
+values by all scorable output values; recall divides them by all
+scorable reference values. Unmatched values count as failures;
+missing/missing is excluded. Both editions and measures use the same
+0–100% color scale, with percentages rounded to two decimals. Name and,
+for second-pass links, state/city agreement are linkage-conditioned.
+Years are two-digit tokens, school codes syntactically normalized, and
+places normalized for formatting. The combined table’s county uses the
+checked county-cleaning rule on fixed links; its other fields use the
+reconciled reading. Table <a href="#tab:fields">G.1</a> retains the
+exact displayed percentages; Table <a href="#tab:fieldcounts">G.2</a>
+gives the integer counts for both editions.</p>
+</div>
+<p>The broad pattern mirrors the record-level results. Across most
+biographical fields, the AI-assisted parser and the combined table
+achieve the highest levels of agreement with the reference
+transcription. In 1921, agreement for these methods ranges between 95 to
+98 percent across the evaluated biographical fields. The corresponding
+range is 90 to 96 percent for the MLLM workflow and 92 to 96 percent for
+the open LLM workflow. For the open LLM workflow, medical school is the
+weakest of the four biographical fields, with recall of 92.49%. The same
+pattern appears in 1912, although field-level agreement varies somewhat
+more across fields. Medical school remains one of the most challenging
+fields for all methods and is again the weakest of the four biographical
+fields for the open LLM workflow (91.26%).</p>
+<p>The largest differences across methods occur in place information.
+City agreement reaches 95 to 97 percent for the AI-assisted parser and
+the combined table in 1921, compared with 86 to 89 percent for the MLLM
+workflow. For 1912, the corresponding ranges are 96 to 97 and 90 to 93
+percent. County shows the largest gain for the combined table, but most
+of it comes from county cleaning. In 1921, county precision and recall
+are 95.14 / 89.78 for the parser and 96.65 / 96.97 for the combined
+table. In 1912, the corresponding values are 94.88 / 86.20 and 96.71 /
+96.69. The combined table’s county is scored after the county-cleaning
+rule. As read, its 1921 figures are 90.90 / 90.96 (Table <a
+href="#tab:cleaning">G.3</a>). Reconciliation alone therefore raises
+county recall over the parser by about one point and lowers precision,
+and the cleaning rule accounts for the rest.</p>
+</section>
+<section id="sec:disagree" class="level3">
+<h3><span class="header-section-number">5.3</span> Sources of
+disagreement</h3>
+<p>Understanding why methods disagree is as important as measuring how
+often they disagree. In many cases, disagreements arise not because a
+field value differs, but because a record is not linked: no record on
+the other side has the same page and name key, or the match is
+ambiguous. We currently have the most detailed diagnostic information
+for the 1921 edition. For the combined table, recall losses fall into
+three main groups: 1,569 transcribed records whose page-and-name key has
+no corresponding extracted record, 107 records whose key could not be
+resolved during second-pass matching, and 459 records lacking a usable
+name or page identifier. Precision losses arise from 2,327
+machine-generated records with no corresponding transcription record and
+118 records that remain ambiguous after matching. The available
+diagnostics cannot determine whether these discrepancies originate in
+the extraction process or in the reference transcription itself.
+Resolving these cases requires direct inspection of the page images.</p>
+<p>Table <a href="#tab:directions">G.4</a> (Appendix <a
+href="#app:fields">G</a>) counts the disagreements at the field level,
+and Table <a href="#tab:strata">D.5</a> (Appendix <a
+href="#app:corr">D</a>) reports record agreement separately for pages
+where the transcribers flagged many entries as uncertain, and recall
+separately for the entries they flagged. Among observations where only
+one of the two component methods behind the combined table agrees with
+the reference transcription, the parser agrees more frequently for all
+four evaluated fields. For birth year and graduation year, most of this
+advantage reflects missing records in the MLLM output. Missing entries
+account for 1,798 of 1,893 disagreements in birth year and 1,958 of
+3,031 disagreements in graduation year. For license year and medical
+school, missing records explain a smaller share of disagreements. They
+account for only 1,594 of 5,676 license-year discrepancies and 1,955 of
+7,106 school-code discrepancies. In the remaining cases, both outputs
+contain a record, but one workflow extracts a different field value from
+the reference transcription. In Table <a href="#tab:strata">D.5</a>,
+record agreement is also lower, in all five workflows, on pages where
+the transcribers flagged at least five percent of entries as
+uncertain.</p>
+</section>
+<section id="sec:cost" class="level3">
+<h3><span class="header-section-number">5.4</span> Cost</h3>
+<p>The commercial OCR and MLLM workflow cost an estimated €0.03 per page
+in direct processing charges (Gemini plus Azure OCR), roughly 440 times
+less than manual double-entry transcription, which cost €14.70 per page.
+These figures cover processing charges only and leave out engineering,
+review, model development, coding-agent assistance and the local
+computing used to run the open model pipelines, which also serves other
+project work. The machine outputs and the manual transcription do not
+cover exactly the same pages and fields, so this is not an end-to-end
+productivity comparison (Appendix <a href="#app:cost">H</a>).</p>
+</section>
+</section>
+<section id="sec:robust-main" class="level2">
+<h2><span class="header-section-number">6</span> Robustness</h2>
+<p>The ordering of the AI-assisted parser and the MLLM workflow is
+robust to the choice of reference population, links, and page
+restrictions. Using all manually transcribed pages, including those the
+transcribers flagged as having incomplete coverage, moves recall by
+about 0.3 points or less in both editions and 1912 precision by at most
+0.16 points. It lowers 1921 precision by about 1.6 points for every
+workflow, because machine rows for entries the transcribers skipped
+count as errors (Appendix <a href="#app:robust">I</a>). Record agreement
+is lower on pages where the transcribers flagged at least five percent
+of entries as uncertain, in all five workflows (Table <a
+href="#tab:strata">D.5</a>, Appendix <a href="#app:corr">D</a>). Using
+first-pass links only shifts 1921 record agreement by about 0.2 points
+or less (Appendix <a href="#app:corr">D</a>). Dropping the pages used in
+parser development changes precision and recall by at most 0.23
+percentage points for every workflow in both editions, and the ordering
+of workflows by recall stays the same (Appendix <a
+href="#app:robust">I</a>).</p>
+</section>
+<section id="sec:next" class="level2">
+<h2><span class="header-section-number">7</span> Conclusion</h2>
+<p>How closely does machine transcription agree with double-entered
+manual transcription at full-count scale? This paper compares five
+machine extraction workflows against a double-entered full-count
+transcription of the 1912 and 1921 volumes of the American Medical
+Directory, holding roughly 140,000 and 150,000 entries of physician
+biographies, respectively. Machine extraction agrees closely with the
+double-entered manual transcription.</p>
+<p>In 1921 the AI-assisted parser recovers 97.45% of the manually
+transcribed entries and the MLLM workflow 94.13%; in 1912 the figures
+are 97.36% and 94.42%. Precision is similar, at 96.72% and 94.11% in
+1921 and 97.54% and 94.89% in 1912. The open LLM workflow falls between
+the MLLM workflow and the parser in recall. The open LLM workflow
+reaches 95.09% recall in 1921 and 95.87% in 1912, and replacing the
+commercial OCR with open-source OCR in the open OCR-LLM workflow costs
+percentage points of recall in 1921 and in 1912. The practical lesson is
+to combine workflows. The MLLM workflow and the AI-assisted parser fail
+on partly overlapping sets of records, and the combined table reaches
+98.28% recall in 1921 and 97.80% in 1912, above any single workflow.
+Direct processing charges for the commercial OCR and MLLM workflow are
+an estimated €0.03 per page, against €14.70 per page for manual
+transcription, roughly 440 times less before engineering, review and
+hardware.</p>
+<p>As we have emphasized, the reported precision and recall measures
+quantify agreement with the reference population, and do not measure
+scan-verified accuracy. Entries missed by both the extraction methods
+and the manual transcription are unobserved, so recall is defined
+relative to the reference transcription rather than to the printed
+directories themselves. Several questions therefore remain beyond the
+scope of the present comparison, including the accuracy of the reference
+transcription itself. The extraction methods are also not fully
+independent. The MLLM workflow, the AI-assisted parser, the combined
+table and the open LLM workflow all rely on the same Azure OCR text of
+the underlying page images. Agreement among these methods therefore
+provides less evidence than would agreement among fully independent
+readings. The disagreements examined in Section <a
+href="#sec:disagree">5.3</a> provide useful diagnostic information, but
+they do not establish which source is correct. Resolving such cases
+requires adjudication against the original page images.</p>
+<p>Several extensions are planned. First, we will construct a
+scan-verified evaluation sample based on direct adjudication against the
+original page images, allowing accuracy to be assessed rather than
+inferred from agreement. Second, we will classify disagreements by
+extraction stage and apply the construct-versus-observation framework of
+<span class="citation" data-cites="DellRambachan2026Measurement">Dell
+and Rambachan (<a href="#ref-DellRambachan2026Measurement"
+role="doc-biblioref">2026</a>)</span> to selected variables. Third, we
+will evaluate additional extraction workflows designed to provide a more
+independent comparison.</p>
+</section>
+<section id="references" class="level2 unnumbered singlespace">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-AlsanNeberai2026QJE" class="csl-entry" role="listitem">
+Alsan, Marcella, and Yousra Neberai. 2026. <span>“Why Doesn’t the United
+States Have National Health Insurance? The Political Role of the
+American Medical Association.”</span> <em>Quarterly Journal of
+Economics</em> 141 (3): 2147–2204. <a
+href="https://doi.org/10.1093/qje/qjag024">https://doi.org/10.1093/qje/qjag024</a>.
+</div>
+<div id="ref-AMA1912AMD" class="csl-entry" role="listitem">
+American Medical Association. 1912. <em>American Medical Directory: A
+Register of Legally Qualified Physicians of the <span>United
+States</span>, <span>Alaska</span>, <span>Canal Zone</span>,
+<span>Hawaii</span>, <span>Porto Rico</span>, <span>Philippine
+Islands</span>, <span>Canada</span> and <span>Newfoundland</span></em>.
+3rd ed. Chicago: American Medical Association. <a
+href="https://archive.org/details/americanmedicald1912ameruoft">https://archive.org/details/americanmedicald1912ameruoft</a>.
+</div>
+<div id="ref-AMA1921AMD" class="csl-entry" role="listitem">
+———. 1921. <em>American Medical Directory</em>. 7th ed. Chicago:
+American Medical Association. <a
+href="https://archive.org/details/americanmedicald1921ameruoft">https://archive.org/details/americanmedicald1921ameruoft</a>.
+</div>
+<div id="ref-andrews2023physician" class="csl-entry" role="listitem">
+Andrews, Brendon Patrick. 2023. <span>“Physician Quality and the
+<span>F</span>lexner Report of 1910.”</span>
+</div>
+<div id="ref-backerperal2025llms" class="csl-entry" role="listitem">
+Bäcker-Peral, Verónica, Vitaly Meursault, and Christopher Severen. 2026.
+<span>“Can <span>LLMs</span> Credibly Transform the Creation of Panel
+Data from Diverse Historical Tables?”</span> arXiv preprint
+arXiv:2505.11599v2. <a
+href="https://arxiv.org/abs/2505.11599v2">https://arxiv.org/abs/2505.11599v2</a>.
+</div>
+<div id="ref-beach2023historical" class="csl-entry" role="listitem">
+Beach, Brian, and W. Walker Hanlon. 2023. <span>“Historical Newspaper
+Data: A Researcher’s Guide.”</span> <em>Explorations in Economic
+History</em> 90: 101541. <a
+href="https://doi.org/10.1016/j.eeh.2023.101541">https://doi.org/10.1016/j.eeh.2023.101541</a>.
+</div>
+<div id="ref-carlson2024efficient" class="csl-entry" role="listitem">
+Carlson, Jacob, Tom Bryan, and Melissa Dell. 2024. <span>“Efficient
+<span>OCR</span> for Building a Diverse Digital History.”</span> arXiv
+preprint arXiv:2304.02737.
+</div>
+<div id="ref-CatillonCutlerGetzen2018" class="csl-entry"
+role="listitem">
+Catillon, Maryaline, David Cutler, and Thomas Getzen. 2018. <span>“Two
+Hundred Years of Health and Medical Care: The Importance of Medical Care
+for Life Expectancy Gains.”</span> Working Paper No. 25330. National
+Bureau of Economic Research. <a
+href="https://doi.org/10.3386/w25330">https://doi.org/10.3386/w25330</a>.
+</div>
+<div id="ref-ChrisingerOxfordFigshare2023v2" class="csl-entry"
+role="listitem">
+Chrisinger, Benjamin W. 2023. <span>“Deep Roots of Racial Inequalities
+in <span>US</span> Healthcare: The 1906 American Medical
+Directory.”</span> Dataset, version 2, University of Oxford Sustainable
+Digital Scholarship portal, <a
+href="https://doi.org/10.25446/oxford.24065709.v2"
+class="uri">https://doi.org/10.25446/oxford.24065709.v2</a>. <a
+href="https://doi.org/10.25446/oxford.24065709.v2">https://doi.org/10.25446/oxford.24065709.v2</a>.
+</div>
+<div id="ref-chrisinger2024black" class="csl-entry" role="listitem">
+———. 2024. <span>“<span>US</span> County-Level Variation in Availability
+and Prevalence of Black Physicians in 1906.”</span> <em>JAMA Network
+Open</em> 7 (5): e2410242. <a
+href="https://doi.org/10.1001/jamanetworkopen.2024.10242">https://doi.org/10.1001/jamanetworkopen.2024.10242</a>.
+</div>
+<div id="ref-correia2023digitizing" class="csl-entry" role="listitem">
+Correia, Sergio, and Stephan Luck. 2023. <span>“Digitizing Historical
+Balance Sheet Data: A Practitioner’s Guide.”</span> <em>Explorations in
+Economic History</em> 87: 101475. <a
+href="https://doi.org/10.1016/j.eeh.2022.101475">https://doi.org/10.1016/j.eeh.2022.101475</a>.
+</div>
+<div id="ref-Dahl2023" class="csl-entry" role="listitem">
+Dahl, Christian M., Torben S. D. Johansen, Emil N. Sørensen, Christian
+E. Westermann, and Simon Wittrock. 2023. <span>“Applications of Machine
+Learning in Tabular Document Digitisation.”</span> <em>Historical
+Methods: A Journal of Quantitative and Interdisciplinary History</em> 56
+(1): 34–48. <a
+href="https://doi.org/10.1080/01615440.2023.2164879">https://doi.org/10.1080/01615440.2023.2164879</a>.
+</div>
+<div id="ref-dell2025deep" class="csl-entry" role="listitem">
+Dell, Melissa. 2025. <span>“Deep Learning for Economists.”</span>
+<em>Journal of Economic Literature</em> 63 (1): 5–58. <a
+href="https://doi.org/10.1257/jel.20241733">https://doi.org/10.1257/jel.20241733</a>.
+</div>
+<div id="ref-DellRambachan2026Measurement" class="csl-entry"
+role="listitem">
+Dell, Melissa, and Ashesh Rambachan. 2026. <span>“The Measurement
+Revolution? Credible Measurement and Inference in the Age of
+<span>AI</span>.”</span> Working Paper No. 35744. National Bureau of
+Economic Research. <a
+href="https://doi.org/10.3386/w35744">https://doi.org/10.3386/w35744</a>.
+</div>
+<div id="ref-Ferrara2026Guide" class="csl-entry" role="listitem">
+Ferrara, Andreas. 2026. <span>“A Practitioner’s Guide to Using Large
+Language Models and Generative <span>AI</span> in Economic
+History.”</span> Discussion Paper No. 171/26. Rockwool Foundation Berlin
+(RFBerlin). <a
+href="https://www.rfberlin.com/wp-content/uploads/2026/06/26171-1.pdf">https://www.rfberlin.com/wp-content/uploads/2026/06/26171-1.pdf</a>.
+</div>
+<div id="ref-fleischhacker2025enhancing" class="csl-entry"
+role="listitem">
+Fleischhacker, David, Roman Kern, and Wolfgang Göderle. 2025.
+<span>“Enhancing <span>OCR</span> in Historical Documents with Complex
+Layouts Through Machine Learning.”</span> <em>International Journal on
+Digital Libraries</em> 26: 3. <a
+href="https://doi.org/10.1007/s00799-025-00413-z">https://doi.org/10.1007/s00799-025-00413-z</a>.
+</div>
+<div id="ref-gutmann2018bigdata" class="csl-entry" role="listitem">
+Gutmann, Myron P., Emily Klancher Merchant, and Evan Roberts. 2018.
+<span>“<span>‘Big Data’</span> in Economic History.”</span> <em>The
+Journal of Economic History</em> 78 (1): 268–99. <a
+href="https://doi.org/10.1017/S0022050718000177">https://doi.org/10.1017/S0022050718000177</a>.
+</div>
+<div id="ref-HollingsworthKarbownikThomassonWray2024" class="csl-entry"
+role="listitem">
+Hollingsworth, Alex, Krzysztof Karbownik, Melissa A. Thomasson, and
+Anthony Wray. 2024. <span>“The Gift of a Lifetime: The Hospital, Modern
+Medicine, and Mortality.”</span> <em>American Economic Review</em> 114
+(7): 2201–38. <a
+href="https://doi.org/10.1257/aer.20230008">https://doi.org/10.1257/aer.20230008</a>.
+</div>
+<div id="ref-JAMA1905CardIndex" class="csl-entry" role="listitem">
+Journal of the American Medical Association. 1905. <span>“Biographical
+Card Index and Directory.”</span> <em>JAMA</em> 45 (21): 1574–75. <a
+href="https://doi.org/10.1001/jama.1905.02510210044006">https://doi.org/10.1001/jama.1905.02510210044006</a>.
+</div>
+<div id="ref-McNamaraHassingerMitchell1955" class="csl-entry"
+role="listitem">
+McNamara, Robert L., Edward W. Hassinger, and John B. Mitchell. 1955.
+<span>“Supply of Physicians in Rural Missouri.”</span> Bulletin 651.
+University of Missouri College of Agriculture, Agricultural Experiment
+Station. <a
+href="https://mospace.umsystem.edu/server/api/core/bitstreams/a5119dea-c16d-4966-9190-b7e3a9c70bf2/content">https://mospace.umsystem.edu/server/api/core/bitstreams/a5119dea-c16d-4966-9190-b7e3a9c70bf2/content</a>.
+</div>
+<div id="ref-moehling2019medical" class="csl-entry" role="listitem">
+Moehling, Carolyn M., Gregory T. Niemesh, Melissa A. Thomasson, and
+Jaret Treber. 2020. <span>“Medical Education Reforms and the Origins of
+the Rural Physician Shortage.”</span> <em>Cliometrica</em> 14: 181–225.
+<a
+href="https://doi.org/10.1007/s11698-019-00187-w">https://doi.org/10.1007/s11698-019-00187-w</a>.
+</div>
+<div id="ref-MountinPennellNicolay1942General" class="csl-entry"
+role="listitem">
+Mountin, Joseph W., Elliott H. Pennell, and Virginia Nicolay. 1942.
+<span>“Location and Movement of Physicians, 1923 and 1938: General
+Observations.”</span> <em>Public Health Reports (1896–1970)</em> 57
+(37): 1363–75. <a
+href="https://doi.org/10.2307/4584215">https://doi.org/10.2307/4584215</a>.
+</div>
+<div id="ref-MullallyMacDonald2017" class="csl-entry" role="listitem">
+Mullally, Sasha, and Katherine MacDonald. 2017. <span>“Call the Doctor?
+Understanding Health Service Trends in New Brunswick, Part
+<span>I</span>, 1918–1950.”</span> <em>Journal of New Brunswick
+Studies</em> 8. <a
+href="https://journals.lib.unb.ca/index.php/JNBS/article/view/25879">https://journals.lib.unb.ca/index.php/JNBS/article/view/25879</a>.
+</div>
+<div id="ref-Schafer2014" class="csl-entry" role="listitem">
+Schafer, Jr., James A. 2014. <em>The Business of Private Medical
+Practice: Doctors, Specialization, and Urban Change in
+<span>Philadelphia</span>, 1900–1940</em>. New Brunswick, NJ: Rutgers
+University Press.
+</div>
+<div id="ref-smith2017digitizing" class="csl-entry" role="listitem">
+Smith, Sean Morey. 2017. <span>“Digitizing Doctors: Methodologies for
+Creating a Database from Historical Directories of Physicians.”</span>
+<em>Medical History</em> 61 (4): 611–14. <a
+href="https://doi.org/10.1017/mdh.2017.71">https://doi.org/10.1017/mdh.2017.71</a>.
+</div>
+<div id="ref-Staines2015" class="csl-entry" role="listitem">
+Staines, Amber. 2015. <span>“The Effect of Medical Care on Infant
+Mortality in the United States in the Early 20th Century.”</span> M.A.
+thesis, Miami University. <a
+href="https://etd.ohiolink.edu/acprod/odb_etd/ws/send_file/send?accession=miami1438190193&amp;disposition=inline">https://etd.ohiolink.edu/acprod/odb_etd/ws/send_file/send?accession=miami1438190193&amp;disposition=inline</a>.
+</div>
+<div id="ref-Weisz2006RegulatingSpecialists" class="csl-entry"
+role="listitem">
+Weisz, George. 2006. <span>“Regulating Specialists in National Medical
+Directories.”</span> In <em>Divide and Conquer: A Comparative History of
+Medical Specialization</em>, 87–104. Oxford: Oxford University Press. <a
+href="https://doi.org/10.1093/oso/9780195179699.003.0005">https://doi.org/10.1093/oso/9780195179699.003.0005</a>.
+</div>
+</div>
+</section>
+<section id="app:prior" class="level2">
+<h2><span class="header-section-number">Appendix A</span> Prior
+transcriptions of the AMD</h2>
+<p>Because successive editions repeat a recurring core of fields for the
+licensed profession, the AMD supports three kinds of study that few
+other historical sources allow: the supply and location of physicians in
+a place and its change over time <span class="citation"
+data-cites="moehling2019medical MountinPennellNicolay1942General">(<a
+href="#ref-moehling2019medical" role="doc-biblioref">Moehling et al.
+2020</a>; <a href="#ref-MountinPennellNicolay1942General"
+role="doc-biblioref">Mountin, Pennell, and Nicolay 1942</a>)</span>; the
+training of physicians, through the medical school code and graduation
+year; and the careers of groups the directory marks, Black physicians
+through the <em>col.</em> label <span class="citation"
+data-cites="chrisinger2024black">(<a href="#ref-chrisinger2024black"
+role="doc-biblioref">Chrisinger 2024</a>)</span> and members and
+specialists through the membership marks and specialty codes <span
+class="citation" data-cites="AlsanNeberai2026QJE">(<a
+href="#ref-AlsanNeberai2026QJE" role="doc-biblioref">Alsan and Neberai
+2026</a>)</span>.</p>
+<p>Table <a href="#tab:prior">A.1</a> lists prior AMD transcriptions,
+including hand-keyed subsets and national OCR extractions of single
+editions, 1918 for <span class="citation"
+data-cites="smith2017digitizing">Smith (<a
+href="#ref-smith2017digitizing" role="doc-biblioref">2017</a>)</span>
+and 1950 for <span class="citation"
+data-cites="AlsanNeberai2026QJE">Alsan and Neberai (<a
+href="#ref-AlsanNeberai2026QJE" role="doc-biblioref">2026</a>)</span>.
+<span class="citation" data-cites="moehling2019medical">Moehling et al.
+(<a href="#ref-moehling2019medical"
+role="doc-biblioref">2020</a>)</span> used hand transcriptions of four
+editions for four states to study physician labor markets. Our own
+earlier work used a vendor double-entry transcription of the AMD for
+North Carolina from every edition between 1912 and 1942 <span
+class="citation"
+data-cites="HollingsworthKarbownikThomassonWray2024">(<a
+href="#ref-HollingsworthKarbownikThomassonWray2024"
+role="doc-biblioref">Hollingsworth et al. 2024</a>)</span>. <span
+class="citation" data-cites="AlsanNeberai2026QJE">Alsan and Neberai (<a
+href="#ref-AlsanNeberai2026QJE" role="doc-biblioref">2026</a>)</span>
+digitized and OCR’d the 1950 edition for membership and specialists and
+checked state totals against published aggregates. Other studies use a
+state, a city or sample <span class="citation"
+data-cites="Staines2015 CatillonCutlerGetzen2018 MullallyMacDonald2017 McNamaraHassingerMitchell1955 Weisz2006RegulatingSpecialists Schafer2014">(<a
+href="#ref-Staines2015" role="doc-biblioref">Staines 2015</a>; <a
+href="#ref-CatillonCutlerGetzen2018" role="doc-biblioref">Catillon,
+Cutler, and Getzen 2018</a>; <a href="#ref-MullallyMacDonald2017"
+role="doc-biblioref">Mullally and MacDonald 2017</a>; <a
+href="#ref-McNamaraHassingerMitchell1955" role="doc-biblioref">McNamara,
+Hassinger, and Mitchell 1955</a>; <a
+href="#ref-Weisz2006RegulatingSpecialists" role="doc-biblioref">Weisz
+2006</a>; <a href="#ref-Schafer2014" role="doc-biblioref">Schafer
+2014</a>)</span>. <span class="citation"
+data-cites="andrews2023physician">Andrews (<a
+href="#ref-andrews2023physician" role="doc-biblioref">2023</a>)</span>
+uses AMD aggregates and a state directory, not AMD microdata.</p>
+<p>The closest precedent to our validation samples is <span
+class="citation" data-cites="chrisinger2024black">Chrisinger (<a
+href="#ref-chrisinger2024black" role="doc-biblioref">2024</a>)</span>,
+which used a double-entry manual transcription for eighteen Southern and
+adjacent states and the District of Columbia. The article analyzes
+41,828 entries, including 632 physicians labeled <em>col.</em> and 113
+unlabeled graduates of Black medical schools, and its dataset is
+publicly deposited <span class="citation"
+data-cites="ChrisingerOxfordFigshare2023v2">(<a
+href="#ref-ChrisingerOxfordFigshare2023v2"
+role="doc-biblioref">Chrisinger 2023</a>)</span>. <span class="citation"
+data-cites="smith2017digitizing">Smith (<a
+href="#ref-smith2017digitizing" role="doc-biblioref">2017</a>)</span>
+provides a machine-transcription precedent with reported record checks.
+The 1918 prototype uses commercial OCR and two parsing programs, keeps
+70 to 90 percent of single-line entries, varying by state, and reports
+more than 92 percent of manually checked entries as perfect. It also
+compares capture with printed counts for the largest cities.</p>
+<p>A series of articles in <em>Public Health Reports</em> by Mountin,
+Pennell and coauthors examines physician location and movement between
+1923 and 1938 <span class="citation"
+data-cites="MountinPennellNicolay1942General">(for example <a
+href="#ref-MountinPennellNicolay1942General"
+role="doc-biblioref">Mountin, Pennell, and Nicolay 1942</a>)</span>.
+Their titles and records show the subject but not how physicians were
+linked across editions.</p>
+<div class="threeparttable">
+<div id="tab:prior" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table A.1">
+<table>
+<caption><span class="caption-label">Table A.1. </span>Prior
+transcriptions of the American Medical Directory</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Study</th>
+<th style="text-align: left;">Editions</th>
+<th style="text-align: left;">Coverage</th>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Validation reported</th>
+<th style="text-align: left;">Public</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><span class="citation"
+data-cites="moehling2019medical">Moehling et al. (<a
+href="#ref-moehling2019medical"
+role="doc-biblioref">2020</a>)</span></td>
+<td style="text-align: left;">1909, 1914, 1918, 1921</td>
+<td style="text-align: left;">CA, MS, NY, NC</td>
+<td style="text-align: left;">hand keying</td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="citation"
+data-cites="HollingsworthKarbownikThomassonWray2024">Hollingsworth et
+al. (<a href="#ref-HollingsworthKarbownikThomassonWray2024"
+role="doc-biblioref">2024</a>)</span></td>
+<td style="text-align: left;">1912–1942</td>
+<td style="text-align: left;">North Carolina</td>
+<td style="text-align: left;">vendor double entry</td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;">yes, deposited</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="citation"
+data-cites="AlsanNeberai2026QJE">Alsan and Neberai (<a
+href="#ref-AlsanNeberai2026QJE"
+role="doc-biblioref">2026</a>)</span></td>
+<td style="text-align: left;">1950 by OCR; earlier editions cited</td>
+<td style="text-align: left;">national (membership, specialists)</td>
+<td style="text-align: left;">OCR</td>
+<td style="text-align: left;">state totals vs published aggregates</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="citation"
+data-cites="smith2017digitizing">Smith (<a
+href="#ref-smith2017digitizing"
+role="doc-biblioref">2017</a>)</span></td>
+<td style="text-align: left;">1918</td>
+<td style="text-align: left;">national pilot</td>
+<td style="text-align: left;">OCR, two parsers</td>
+<td style="text-align: left;">printed per-city counts; 70 to 90% of
+single-line entries kept;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>&gt;</mo><annotation encoding="application/x-tex">&gt;</annotation></semantics></math>92%
+of checked entries perfect</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="citation"
+data-cites="chrisinger2024black">Chrisinger (<a
+href="#ref-chrisinger2024black"
+role="doc-biblioref">2024</a>)</span></td>
+<td style="text-align: left;">1906</td>
+<td style="text-align: left;">18 Southern and adjacent states, DC</td>
+<td style="text-align: left;">vendor double entry</td>
+<td style="text-align: left;">likely undercount reported</td>
+<td style="text-align: left;">yes, deposited</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="citation"
+data-cites="MountinPennellNicolay1942General">Mountin, Pennell, and
+Nicolay (<a href="#ref-MountinPennellNicolay1942General"
+role="doc-biblioref">1942</a>)</span></td>
+<td style="text-align: left;">1923, 1938</td>
+<td style="text-align: left;">national</td>
+<td style="text-align: left;">Public Health Service tabulation</td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;">in print</td>
+</tr>
+<tr>
+<td style="text-align: left;">This note</td>
+<td style="text-align: left;">1912, 1921</td>
+<td style="text-align: left;">48 states and DC</td>
+<td style="text-align: left;">OCR; MLLM, AI-assisted parser, open LLM
+and open OCR-LLM workflows</td>
+<td style="text-align: left;">agreement with a double-entered
+transcription on its completely transcribed pages</td>
+<td style="text-align: left;">yes, Zenodo, CC BY</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Our own earlier work; the vendor reports double entry.</p>
+<p>— : not examined for this note.</p>
+</div>
+</div>
+</section>
+<section id="app:protocol" class="level2">
+<h2><span class="header-section-number">Appendix B</span> Scoring
+protocol</h2>
+<p>This appendix collects the rules under which every figure in
+Section <a href="#sec:results">5</a> was produced.</p>
+<section id="record-linkage." class="level5">
+<h5>Record linkage.</h5>
+<p>Each workflow is linked to the validation sample separately, with the
+same rule in both editions. The first pass matches printed-page and name
+keys that occur exactly once on each side. Within page-and-name groups
+that remain ambiguous, the second pass matches state–city pairs that are
+valid and unique on both sides. Birth, graduation and license years and
+the school code never select a link. Unmatched rows and unresolved ties
+remain in both denominators, and links are fixed over the whole edition
+before any page restriction, so name agreement is conditioned on the
+rule. The linkage key is the printed page and the name as a multiset of
+tokens: names are normalized (Unicode composition, case folding), split
+into alphanumeric tokens and sorted, with no fuzzy repair, and a blank
+name gives no key. Years and school codes are never keys. Table <a
+href="#tab:corr">D.3</a> (Appendix <a href="#app:corr">D</a>) gives the
+1921 figures after the first pass alone.</p>
+</section>
+<section id="scorer." class="level5">
+<h5>Scorer.</h5>
+<p>All headline tables use a common scorer. The scorer applies the same
+normalization to city and county on both sides before linking: it
+removes accents, the
+<em>St.</em>/<em>Mt.</em>/<em>Ft.</em> abbreviations, a trailing
+<em>County</em>, punctuation and spacing, and nothing else. Field
+precision divides agreeing linked values by all scorable output values
+and field recall by all scorable reference values; an unmatched row’s
+values count as failures; a blank on both sides never counts as
+agreement; years are compared as two-digit tokens and school codes after
+the same syntactic normalization on both sides.</p>
+</section>
+<section id="cleaned-reference." class="level5">
+<h5>Cleaned reference.</h5>
+<p>The scorer reads a <em>cleaned</em> version of the transcription,
+which normalizes school codes and two-digit years to the forms the key
+defines and does not touch names or places. Its largest effect is on the
+school code, where the transcribers’ varied spellings of one code would
+otherwise count as disagreement. That difference reflects how the
+reference represents a value, not the extraction.</p>
+</section>
+<section id="frames." class="level5">
+<h5>Frames.</h5>
+<p>The analysis frame of an edition is the set of transcribed printed
+pages <em>without known incomplete coverage</em>: pages on which the
+compiled transcription records no ignored-row placeholder, including the
+pages used to tune the parser, the pages drawn into a sampling design
+and the diagnostic pages (Appendix <a href="#app:robust">I</a> reports
+the frame without them). For 1921 that is 1,036 pages and 124,167
+cleaned rows out of 1,233 transcribed page keys, after dropping the 197
+pages with an ignored-row placeholder. For 1912 it is 903 pages and
+123,726 rows out of 1,006 page keys, after dropping the 103 pages with
+an ignored-row placeholder. Table <a href="#tab:pds">D.1</a>
+(Appendix <a href="#app:corr">D</a>) sets the two editions side by side;
+Table <a href="#tab:corr">D.3</a> gives the 1921 figures on the broad
+frame.</p>
+</section>
+<section id="evaluated-inputs." class="level5">
+<h5>Evaluated inputs.</h5>
+<p>The MLLM workflow is the matched output of the stored biography and
+location passes; the 1921 model passes date from February 2026, and the
+1912 output is the one used in the tables prepared for release. The
+AI-assisted parser is the parser’s raw candidate list for each edition.
+The combined table is the reconciled output in each edition, with the
+checked cleaned county substituted for the as-read county. The paired
+county checks retain exactly the same links and all non-county fields.
+The open LLM workflow is open-model-pipeline output for 1921 (162,215
+evaluated rows, of 162,947 output rows with 732 duplicate-page rows
+dropped) and 1912 (149,471 rows). The open OCR-LLM workflow is the
+output of the same open model pipeline, with the same model and prompts,
+on the open-source OCR text of each edition. The open LLM and open
+OCR-LLM outputs carry their own page identifiers, which a reviewed page
+bridge maps to printed pages in both editions. Table <a
+href="#tab:arms">D.2</a> (Appendix <a href="#app:corr">D</a>) lists the
+inputs of each workflow.</p>
+</section>
+</section>
+<section id="app:key" class="level2">
+<h2><span class="header-section-number">Appendix C</span> The printed
+key for 1921</h2>
+<section id="what-an-entry-holds." class="level5">
+<h5>What an entry holds.</h5>
+<p>The body is arranged by state, then by town, with the town’s
+population and county on a heading line and the physicians beneath it in
+alphabetical order, in narrow columns. A physician listed in full under
+one town may be printed under another as a cross-reference line. Each
+entry packs its fields into a fixed order of abbreviations, decoded by
+an edition-specific printed key; the front-matter key is not in our
+scans, and we read it from an Internet Archive copy <span
+class="citation" data-cites="AMA1921AMD">(<a href="#ref-AMA1921AMD"
+role="doc-biblioref">American Medical Association 1921</a>)</span>.
+Table <a href="#tab:key">C.1</a> lists the printed elements and the
+release field each feeds. The license year is the year of license in the
+state where the physician is listed, so a mover carries a new license
+year in the next edition; a missing year has several printed meanings,
+most with their own mark, and some states print no year by convention.
+The release tables carry the year only, not which reason the mark gave.
+The address element <code>R.D.</code>, the physician count, the town
+line and the cross-reference are layout elements rather than key
+definitions; we read their meanings from the entries themselves.</p>
+<div class="threeparttable">
+<div id="tab:key" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table C.1">
+<table>
+<caption><span class="caption-label">Table C.1. </span>The 1921 printed
+key and release fields</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Printed element</th>
+<th style="text-align: left;">Meaning in 1921</th>
+<th style="text-align: left;">Release field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Name in capitals</td>
+<td style="text-align: left;">membership in the AMA through a
+constituent state association and component county society</td>
+<td style="text-align: left;">withheld</td>
+</tr>
+<tr>
+<td style="text-align: left;">AMA mark, letter-coded before OCR, after
+the license year</td>
+<td style="text-align: left;">Fellowship in the AMA; commissioned
+medical officers on active service are Fellows</td>
+<td style="text-align: left;">withheld</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>(E)</code>, <code>(H)</code>,
+<code>(P-M)</code> after the name</td>
+<td style="text-align: left;">eclectic, homeopath, physio-medic</td>
+<td style="text-align: left;">withheld</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>b’75</code></td>
+<td style="text-align: left;">born 1875</td>
+<td style="text-align: left;">birth year, as read and cleaned</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Md.7,’09</code></td>
+<td style="text-align: left;">school key number (state abbreviation and
+number) and year of graduation</td>
+<td style="text-align: left;">school code (cleaned to the key’s form),
+graduation year</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>◊</mo><annotation encoding="application/x-tex">\lozenge</annotation></semantics></math></td>
+<td style="text-align: left;">information received does not show
+graduation from a medical college</td>
+<td style="text-align: left;">not captured</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>△</mi><annotation encoding="application/x-tex">\triangle</annotation></semantics></math></td>
+<td style="text-align: left;">graduate of an institution not listed as a
+medical college by the Council on Medical Education and Hospitals</td>
+<td style="text-align: left;">not captured</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>l’20</code></td>
+<td style="text-align: left;">year of license in the state where
+located</td>
+<td style="text-align: left;">license year</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>l</code>†</td>
+<td style="text-align: left;">licensed, year not known</td>
+<td style="text-align: left;">not captured</td>
+</tr>
+<tr>
+<td style="text-align: left;">‡</td>
+<td style="text-align: left;">information received does not show license
+in the state where located</td>
+<td style="text-align: left;">not captured</td>
+</tr>
+<tr>
+<td style="text-align: left;">circle under a cross</td>
+<td style="text-align: left;">in practice in the state where located
+before passage of the present law, and licensed by filing a diploma or
+by years of practice</td>
+<td style="text-align: left;">not captured</td>
+</tr>
+<tr>
+<td style="text-align: left;">Specialty code (<code>S</code>,
+<code>Oph</code>, <code>Pd</code>, …), <code>*</code></td>
+<td style="text-align: left;">self-reported interest; with the asterisk,
+practice claimed limited to that branch; printed on request only</td>
+<td style="text-align: left;">withheld</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>R.D.</code>, <code>R.D.1</code></td>
+<td style="text-align: left;">rural-delivery address element, never a
+specialty</td>
+<td style="text-align: left;">withheld with the addresses</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>(col.)</code> after the name</td>
+<td style="text-align: left;">the Association’s label for a Black
+physician</td>
+<td style="text-align: left;">withheld</td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><code>NUMBER OF PHYSICIANS, </code><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+under a town line</td>
+<td style="text-align: left;">count of physicians listed under that
+town</td>
+<td style="text-align: left;">not released</td>
+</tr>
+<tr>
+<td style="text-align: left;">Town line
+<code>TOWN, population, COUNTY</code></td>
+<td style="text-align: left;">population and county of the town</td>
+<td style="text-align: left;">county, as read and cleaned; population
+withheld</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>(See Chicago)</code></td>
+<td style="text-align: left;">cross-reference to the full entry under
+another town</td>
+<td style="text-align: left;">cross-reference line in the release
+table</td>
+</tr>
+<tr>
+<td style="text-align: left;">ADDENDA; index symbols</td>
+<td style="text-align: left;">physicians received too late to classify;
+corrections; reports of deaths</td>
+<td style="text-align: left;">not released</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Carried from the 1918 key or the 1921 addenda key; the 1921
+front-matter key is not in our scans.</p>
+<p>Not defined in any key we have seen; the label appears only in
+entries, and its reading follows <span class="citation"
+data-cites="chrisinger2024black">Chrisinger (<a
+href="#ref-chrisinger2024black"
+role="doc-biblioref">2024</a>)</span>.</p>
+<p>Or after the birth year on pages printed in the second layout.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="app:corr" class="level2">
+<h2><span class="header-section-number">Appendix D</span> Linkage
+sensitivity and stage decomposition</h2>
+<p>Appendix <a href="#app:protocol">B</a> states the linkage rule,
+scorer, frames and inputs. Table <a href="#tab:pds">D.1</a> gives the
+coverage of the validation samples (Section <a
+href="#sec:reference">4.1</a>) and Table <a href="#tab:arms">D.2</a> the
+five extraction workflows (Section <a href="#sec:readings">3.2</a>).</p>
+<div class="threeparttable">
+<div id="tab:pds" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table D.1">
+<table>
+<caption><span class="caption-label">Table D.1. </span>Coverage of the
+validation samples, 1912 and 1921</caption>
+<thead>
+<tr>
+<th style="text-align: left;"></th>
+<th style="text-align: right;">1912</th>
+<th style="text-align: right;">1921</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Printed-page keys transcribed (broad
+frame)</td>
+<td style="text-align: right;">1,006</td>
+<td style="text-align: right;">1,233</td>
+</tr>
+<tr>
+<td style="text-align: left;">Cleaned rows, broad frame</td>
+<td style="text-align: right;">137,501</td>
+<td style="text-align: right;">145,064</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pages without known incomplete coverage
+(analysis frame)</td>
+<td style="text-align: right;">903</td>
+<td style="text-align: right;">1,036</td>
+</tr>
+<tr>
+<td style="text-align: left;">Cleaned rows, analysis frame</td>
+<td style="text-align: right;">123,726</td>
+<td style="text-align: right;">124,167</td>
+</tr>
+<tr>
+<td style="text-align: left;">Analysis pages seen while tuning the
+parser</td>
+<td style="text-align: right;">93</td>
+<td style="text-align: right;">116</td>
+</tr>
+<tr>
+<td style="text-align: left;">Analysis pages in the frozen design
+sample</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">16</td>
+</tr>
+<tr>
+<td style="text-align: left;">Analysis pages used in diagnostics</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: left;">Fields transcribed</td>
+<td colspan="2" style="text-align: right;">name, birth year, school,
+graduation year, license year, city, county, state, population</td>
+</tr>
+<tr>
+<td style="text-align: left;">Not transcribed</td>
+<td colspan="2" style="text-align: right;">addenda; address-unknown
+list; count lines (inconsistently)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Sources: comparison results and validation-sample documentation for
+each edition.</p>
+</div>
+</div>
+<div class="threeparttable">
+<div id="tab:arms" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table D.2">
+<table>
+<caption><span class="caption-label">Table D.2. </span>The five
+extraction workflows</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Workflow</th>
+<th style="text-align: left;">Input</th>
+<th style="text-align: left;">Model or rules</th>
+<th style="text-align: left;">Fields produced</th>
+<th style="text-align: left;">Evaluated output (1921)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">MLLM</td>
+<td style="text-align: left;">page image (biography); OCR text
+(location)</td>
+<td style="text-align: left;">gemini-2.0-flash, prompts per edition;
+page matching; OCR enhancement</td>
+<td style="text-align: left;">name, birth year, school, graduation year,
+license year, specialty, city, county, state</td>
+<td style="text-align: left;">biography and location runs of February
+2026; matching run of October 2026</td>
+</tr>
+<tr>
+<td style="text-align: left;">Parser (AI-assisted)</td>
+<td style="text-align: left;">OCR text</td>
+<td style="text-align: left;">deterministic parser; same rules and
+dictionary in both editions</td>
+<td style="text-align: left;">all of the above, plus population,
+membership and military flags, cross-reference lines</td>
+<td style="text-align: left;">raw candidate list (Appendix <a
+href="#app:protocol">B</a>)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Combined</td>
+<td style="text-align: left;">MLLM and AI-assisted parser</td>
+<td style="text-align: left;">per-field reconciliation rules; release
+cleaning; 48-state rule</td>
+<td style="text-align: left;">the parser’s fields with chosen values and
+per-field provenance</td>
+<td style="text-align: left;">reconciled output; checked cleaned county
+on fixed links</td>
+</tr>
+<tr>
+<td style="text-align: left;">Open LLM</td>
+<td style="text-align: left;">OCR text</td>
+<td style="text-align: left;">multi-stage LLM extraction (open model
+pipeline)</td>
+<td style="text-align: left;">name, birth year, school, graduation year,
+license year, city, county, state</td>
+<td style="text-align: left;">1921: 162,215 evaluated rows (of 162,947
+output rows, with 732 duplicate-page rows dropped)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Open OCR-LLM</td>
+<td style="text-align: left;">OCR text of the page images by an
+open-source model</td>
+<td style="text-align: left;">open model pipeline (same code, model and
+prompts)</td>
+<td style="text-align: left;">as Open LLM</td>
+<td style="text-align: left;">scores in Tables <a
+href="#tab:records">2</a> and <a href="#tab:fields">G.1</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>The MLLM workflow, the AI-assisted parser, the combined table and the
+open LLM workflow consume the same stored OCR output; the MLLM workflow
+also reads page images for biographical fields. The open OCR-LLM
+workflow consumes a separate OCR of the same page images and shares no
+OCR text with the others. Specialty and symbol flags are neither scored
+here nor included in the public release.</p>
+</div>
+</div>
+<p>Table <a href="#tab:corr">D.3</a> reports the record comparison of
+Section <a href="#sec:records">5.1</a> for both editions under the first
+pass alone and after the second pass, and on the broad frame of every
+transcribed page key (1,006 pages in 1912 and 1,233 in 1921), which
+includes the pages with known incomplete coverage. The broad frame
+lowers precision for every workflow: on a page the transcribers covered
+only in part, a machine row for a physician they skipped counts against
+the extraction. Table <a href="#tab:stages">D.4</a> decomposes the MLLM
+workflow by stage on the analysis frames; Appendix <a
+href="#app:gemini">E</a> describes the stages. Table <a
+href="#tab:strata">D.5</a> splits record agreement by the share of each
+page’s entries that the transcribers flagged as uncertain and, for
+recall, by each entry’s own flag; it is the evidence for Section <a
+href="#sec:disagree">5.3</a>.</p>
+<div class="threeparttable">
+<div id="tab:corr" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table D.3">
+<table>
+<caption><span class="caption-label">Table D.3. </span>Record agreement
+by link pass and page frame, 1912 and 1921 (precision / recall,
+%)</caption>
+<tbody>
+<tr>
+<td style="text-align: left;"></td>
+<td colspan="3" style="text-align: center;">Links and rows, analysis
+frame</td>
+<td colspan="2" style="text-align: center;">Analysis frame</td>
+<td style="text-align: right;">Broad frame</td>
+</tr>
+<tr>
+<td style="text-align: left;">Workflow</td>
+<td style="text-align: right;">First-pass links</td>
+<td style="text-align: right;">Second pass adds</td>
+<td style="text-align: right;">Output rows</td>
+<td style="text-align: right;">First pass</td>
+<td style="text-align: right;">Second pass</td>
+<td style="text-align: right;">Second pass</td>
+</tr>
+<tr>
+<td colspan="7" style="text-align: left;"><em>1912</em> (903 analysis
+pages)</td>
+</tr>
+<tr>
+<td style="text-align: left;">MLLM</td>
+<td style="text-align: right;">116,765</td>
+<td style="text-align: right;">52</td>
+<td style="text-align: right;">123,108</td>
+<td style="text-align: right;">94.85 / 94.37</td>
+<td style="text-align: right;">94.89 / 94.42</td>
+<td style="text-align: right;">94.76 / 94.21</td>
+</tr>
+<tr>
+<td style="text-align: left;">Parser</td>
+<td style="text-align: right;">120,420</td>
+<td style="text-align: right;">42</td>
+<td style="text-align: right;">123,496</td>
+<td style="text-align: right;">97.51 / 97.33</td>
+<td style="text-align: right;">97.54 / 97.36</td>
+<td style="text-align: right;">97.48 / 97.27</td>
+</tr>
+<tr>
+<td style="text-align: left;">Combined</td>
+<td style="text-align: right;">120,965</td>
+<td style="text-align: right;">45</td>
+<td style="text-align: right;">123,829</td>
+<td style="text-align: right;">97.69 / 97.77</td>
+<td style="text-align: right;">97.72 / 97.80</td>
+<td style="text-align: right;">97.65 / 97.72</td>
+</tr>
+<tr>
+<td style="text-align: left;">Open LLM</td>
+<td style="text-align: right;">118,571</td>
+<td style="text-align: right;">42</td>
+<td style="text-align: right;">121,370</td>
+<td style="text-align: right;">97.69 / 95.83</td>
+<td style="text-align: right;">97.73 / 95.87</td>
+<td style="text-align: right;">97.57 / 95.60</td>
+</tr>
+<tr>
+<td colspan="7" style="text-align: left;"><em>1921</em> (1,036 analysis
+pages)</td>
+</tr>
+<tr>
+<td style="text-align: left;">MLLM</td>
+<td style="text-align: right;">116,602</td>
+<td style="text-align: right;">281</td>
+<td style="text-align: right;">124,195</td>
+<td style="text-align: right;">93.89 / 93.91</td>
+<td style="text-align: right;">94.11 / 94.13</td>
+<td style="text-align: right;">92.55 / 93.96</td>
+</tr>
+<tr>
+<td style="text-align: left;">Parser</td>
+<td style="text-align: right;">120,923</td>
+<td style="text-align: right;">75</td>
+<td style="text-align: right;">125,101</td>
+<td style="text-align: right;">96.66 / 97.39</td>
+<td style="text-align: right;">96.72 / 97.45</td>
+<td style="text-align: right;">95.11 / 97.44</td>
+</tr>
+<tr>
+<td style="text-align: left;">Combined</td>
+<td style="text-align: right;">121,949</td>
+<td style="text-align: right;">83</td>
+<td style="text-align: right;">124,477</td>
+<td style="text-align: right;">97.97 / 98.21</td>
+<td style="text-align: right;">98.04 / 98.28</td>
+<td style="text-align: right;">96.43 / 98.32</td>
+</tr>
+<tr>
+<td style="text-align: left;">Open LLM</td>
+<td style="text-align: right;">117,987</td>
+<td style="text-align: right;">83</td>
+<td style="text-align: right;">122,915</td>
+<td style="text-align: right;">95.99 / 95.02</td>
+<td style="text-align: right;">96.06 / 95.09</td>
+<td style="text-align: right;">94.44 / 95.22</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Agreement with the cleaned validation sample; scan-verified accuracy
+not assessed. Broad frame: 1912, 1,006 page keys and 137,501 cleaned
+rows; 1921, 1,233 page keys and 145,064 cleaned rows. Table <a
+href="#tab:records">2</a> reports the open OCR-LLM scores on the
+analysis frame. Source: the common scorer’s comparison results.</p>
+</div>
+</div>
+<div class="threeparttable">
+<div id="tab:stages" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table D.4">
+<table>
+<caption><span class="caption-label">Table D.4. </span>The MLLM workflow
+by stage, 1912 and 1921</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Stage</th>
+<th style="text-align: right;">Precision (%)</th>
+<th style="text-align: right;">Recall (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="3" style="text-align: left;"><em>1912</em></td>
+</tr>
+<tr>
+<td style="text-align: left;">Location pass alone (OCR text)</td>
+<td style="text-align: right;">93.77</td>
+<td style="text-align: right;">90.34</td>
+</tr>
+<tr>
+<td style="text-align: left;">Biography pass alone (image)</td>
+<td style="text-align: right;">96.46</td>
+<td style="text-align: right;">92.10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Matched, before OCR enhancement</td>
+<td style="text-align: right;">95.09</td>
+<td style="text-align: right;">92.13</td>
+</tr>
+<tr>
+<td style="text-align: left;">Matched, after OCR enhancement (MLLM
+workflow)</td>
+<td style="text-align: right;">94.89</td>
+<td style="text-align: right;">94.42</td>
+</tr>
+<tr>
+<td colspan="3" style="text-align: left;"><em>1921</em></td>
+</tr>
+<tr>
+<td style="text-align: left;">Location pass alone (OCR text)</td>
+<td style="text-align: right;">95.44</td>
+<td style="text-align: right;">91.64</td>
+</tr>
+<tr>
+<td style="text-align: left;">Biography pass alone (image)</td>
+<td style="text-align: right;">95.64</td>
+<td style="text-align: right;">92.68</td>
+</tr>
+<tr>
+<td style="text-align: left;">Matched, before OCR enhancement</td>
+<td style="text-align: right;">94.76</td>
+<td style="text-align: right;">92.77</td>
+</tr>
+<tr>
+<td style="text-align: left;">Matched, after OCR enhancement (MLLM
+workflow)</td>
+<td style="text-align: right;">94.11</td>
+<td style="text-align: right;">94.13</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Agreement with the cleaned validation sample; scan-verified accuracy
+not assessed. Analysis frames; second-pass links. The biography pass
+carries no geography and links on the first pass only. Source: the stage
+comparison.</p>
+</div>
+</div>
+<div class="landscape">
+<div id="tab:strata" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table D.5">
+<table>
+<caption><span class="caption-label">Table D.5. </span>Agreement by
+uncertainty flags, 1912 and 1921</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Group</th>
+<th style="text-align: right;">Reference rows</th>
+<th style="text-align: right;">MLLM</th>
+<th style="text-align: right;">Parser</th>
+<th style="text-align: right;">Combined</th>
+<th style="text-align: right;">Open LLM</th>
+<th style="text-align: right;">Open OCR-LLM</th>
+<th style="text-align: right;"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="7" style="text-align: left;"><strong>1912</strong></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><em>Pages grouped by the share of entries
+flagged</em> (precision / recall)</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≥</mo><annotation encoding="application/x-tex">\geq</annotation></semantics></math>5%
+of entries flagged (61 pages)</td>
+<td style="text-align: right;">7,884</td>
+<td style="text-align: right;">81.34 / 80.91</td>
+<td style="text-align: right;">83.58 / 83.43</td>
+<td style="text-align: right;">83.77 / 83.83</td>
+<td style="text-align: right;">83.97 / 82.97</td>
+<td style="text-align: right;">82.30 / 79.60</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>&lt;</mo><annotation encoding="application/x-tex">&lt;</annotation></semantics></math>5%
+of entries flagged (842 pages)</td>
+<td style="text-align: right;">115,842</td>
+<td style="text-align: right;">95.81 / 95.34</td>
+<td style="text-align: right;">98.49 / 98.31</td>
+<td style="text-align: right;">98.67 / 98.76</td>
+<td style="text-align: right;">98.67 / 96.75</td>
+<td style="text-align: right;">97.45 / 94.53</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><em>Entries grouped by their own flag</em>
+(recall)</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Flagged entries</td>
+<td style="text-align: right;">2,271</td>
+<td style="text-align: right;">45.13</td>
+<td style="text-align: right;">46.81</td>
+<td style="text-align: right;">47.07</td>
+<td style="text-align: right;">46.15</td>
+<td style="text-align: right;">44.65</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Unflagged entries</td>
+<td style="text-align: right;">121,455</td>
+<td style="text-align: right;">95.34</td>
+<td style="text-align: right;">98.31</td>
+<td style="text-align: right;">98.75</td>
+<td style="text-align: right;">96.80</td>
+<td style="text-align: right;">94.49</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td colspan="7" style="text-align: left;"><strong>1921</strong></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><em>Pages grouped by the share of entries
+flagged</em> (precision / recall)</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≥</mo><annotation encoding="application/x-tex">\geq</annotation></semantics></math>5%
+of entries flagged (42 pages)</td>
+<td style="text-align: right;">5,085</td>
+<td style="text-align: right;">92.18 / 90.84</td>
+<td style="text-align: right;">93.34 / 94.75</td>
+<td style="text-align: right;">94.03 / 95.36</td>
+<td style="text-align: right;">92.43 / 93.35</td>
+<td style="text-align: right;">92.05 / 91.72</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td
+style="text-align: left;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>&lt;</mo><annotation encoding="application/x-tex">&lt;</annotation></semantics></math>5%
+of entries flagged (994 pages)</td>
+<td style="text-align: right;">119,082</td>
+<td style="text-align: right;">94.19 / 94.27</td>
+<td style="text-align: right;">96.87 / 97.56</td>
+<td style="text-align: right;">98.21 / 98.41</td>
+<td style="text-align: right;">96.22 / 95.16</td>
+<td style="text-align: right;">95.05 / 92.77</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><em>Entries grouped by their own flag</em>
+(recall)</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Flagged entries</td>
+<td style="text-align: right;">1,627</td>
+<td style="text-align: right;">70.31</td>
+<td style="text-align: right;">84.45</td>
+<td style="text-align: right;">86.17</td>
+<td style="text-align: right;">83.41</td>
+<td style="text-align: right;">82.42</td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Unflagged entries</td>
+<td style="text-align: right;">122,540</td>
+<td style="text-align: right;">94.45</td>
+<td style="text-align: right;">97.62</td>
+<td style="text-align: right;">98.44</td>
+<td style="text-align: right;">95.24</td>
+<td style="text-align: right;">92.86</td>
+<td style="text-align: right;"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="minipage">
+<p><em>Notes:</em> Agreement with the cleaned validation sample;
+scan-verified accuracy not assessed. Second-pass links on each edition’s
+analysis frame (1912, 903 pages; 1921, 1,036 pages), with the same links
+and scorer as Table <a href="#tab:records">2</a>. The first panel of
+each edition restricts both measures to the pages in its group; pages
+are grouped by the share of their reference entries that the
+transcribers flagged as uncertain. The second panel splits the reference
+entries by their own flag and reports recall only: an output row that
+matches no reference entry carries no flag, so precision cannot be
+assigned to an entry group. The flags record the transcribers’
+uncertainty; their absence does not verify an entry. The flagged entries
+include entries whose transcribed name contains a question mark.
+Matching uses the name, so no workflow can match these entries, and they
+count as unmatched for every workflow. They account for most of the low
+recall on flagged entries, especially in 1912, where about half of the
+flagged entries have such names.</p>
+</div>
+</div>
+</section>
+<section id="app:gemini" class="level2">
+<h2><span class="header-section-number">Appendix E</span> The MLLM
+workflow in detail</h2>
+<p>This appendix describes the stored 1921 implementation of the MLLM
+workflow (Section <a href="#sec:gemini">3.2.1</a>): the two model
+passes, the checks on their output and the matching that joins them.
+Every call is to gemini-2.0-flash through the vendor’s API with a prompt
+written for the 1921 edition; the stored runs date from February 2026
+(Appendix <a href="#app:repro">F</a>), and no call has been repeated
+since the model was shut down on 1 June 2026.</p>
+<section id="location-pass." class="level5">
+<h5>Location pass.</h5>
+<p>The first pass reads the OCR text of a page, not the image. The
+prompt asks for structured JSON: the state, each town heading with its
+county and population, and the physician names printed beneath it. A
+page whose output contains neither a town heading nor a physician name
+is skipped as presumed non-entry material; this rule can also exclude a
+physician page whose headings the pass fails to extract.</p>
+</section>
+<section id="biography-pass." class="level5">
+<h5>Biography pass.</h5>
+<p>The second pass reads the page image. The model first transcribes the
+page with its layout into sections, then extracts from each section the
+physicians and the fields the key defines. A section that fails the
+schema check is sent back once for repair, and a section whose output
+overran the model’s limit is split and read again. Pages and entries
+with none of the four key fields (birth year, school, graduation year,
+license year) are dropped at collection.</p>
+</section>
+<section id="matching." class="level5">
+<h5>Matching.</h5>
+<p>The matcher joins the two passes in four greedy, one-to-one rounds:
+on the normalized name and its occurrence on the page; on the name alone
+by Jaro–Winkler similarity at or above 0.85; by carrying a location
+forward from the previous page to a biography that has none; and, last,
+by filling the fields of a name the location pass found but the image
+pass did not from the OCR text. That last step is the only one at which
+OCR text supplies biographical values to this workflow; it filled 3,654
+rows in 1912 and 2,958 in 1921 (3,227 and 2,632 on the analysis frames).
+Table <a href="#tab:stages">D.4</a> scores each stage on the analysis
+frames. In 1921, each pass alone links 92 to 93 percent of the
+transcribed rows at about 95 to 96 percent precision, the two matched
+without the OCR step reach 92.77% at 94.76%, and the full extraction
+94.13% at 94.11%. The OCR step adds 2,824 links in 1912 and 1,691 in
+1921 and about 1.4 points of recall in 1921, at a small cost in
+precision.</p>
+</section>
+</section>
+<section id="app:repro" class="level2">
+<h2><span class="header-section-number">Appendix F</span>
+Reproducibility statement</h2>
+<p>The comparisons use stored outputs; no OCR call, model call or
+extraction was made for this note. Appendix <a
+href="#app:protocol">B</a> describes the linkage rule, scorer, frames
+and inputs. This appendix describes what is released and the limits to
+reproducing the results.</p>
+<section id="extraction-and-release." class="level5">
+<h5>Extraction and release.</h5>
+<p>The stored inputs include the OCR text, the MLLM workflow’s biography
+and location passes and their matched output, the parser candidates and
+the combined tables. For 1921, OCR was performed in January 2026 and the
+model passes in February 2026, using gemini-2.0-flash. For the combined
+table, county is taken from the separately checked county-cleaning rule
+on identical links; the other fields remain those of the reconciled
+output. The public dataset is identified by Zenodo version 1.0.0 and DOI
+10.5281/zenodo.23945788. The descriptive statistics (Table <a
+href="#tab:desc">1</a>) are calculated from the public release tables
+and can be reproduced from the public files.</p>
+</section>
+<section id="limits-to-reproduction." class="level5">
+<h5>Limits to reproduction.</h5>
+<p>The model gemini-2.0-flash was shut down on 1 June 2026, so the MLLM
+extraction cannot be rerun through the vendor’s API. The manual
+transcriptions are excluded from the public release, which prevents full
+public recomputation of the agreement results.</p>
+</section>
+</section>
+<section id="app:fields" class="level2">
+<h2><span class="header-section-number">Appendix G</span> Field tables
+by workflow</h2>
+<p>Table <a href="#tab:fields">G.1</a> gives the percentages shown in
+Figure <a href="#fig:fields">3</a>, for both editions.</p>
+<div class="threeparttable">
+<div id="tab:fields" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table G.1">
+<table>
+<caption><span class="caption-label">Table G.1. </span>Field agreement
+by workflow, 1912 and 1921 (precision / recall, %)</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: right;">MLLM</th>
+<th style="text-align: right;">Parser</th>
+<th style="text-align: right;">Combined</th>
+<th style="text-align: right;">Open LLM</th>
+<th style="text-align: right;">Open OCR-LLM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="6" style="text-align: left;"><em>Panel A: 1912</em></td>
+</tr>
+<tr>
+<td style="text-align: left;">Name</td>
+<td style="text-align: right;">96.26 / 95.60</td>
+<td style="text-align: right;">97.54 / 98.59</td>
+<td style="text-align: right;">97.72 / 99.04</td>
+<td style="text-align: right;">97.73 / 97.07</td>
+<td style="text-align: right;">96.49 / 94.76</td>
+</tr>
+<tr>
+<td style="text-align: left;">Birth year</td>
+<td style="text-align: right;">96.86 / 96.96</td>
+<td style="text-align: right;">97.91 / 97.70</td>
+<td style="text-align: right;">98.06 / 98.17</td>
+<td style="text-align: right;">98.01 / 95.84</td>
+<td style="text-align: right;">95.74 / 93.21</td>
+</tr>
+<tr>
+<td style="text-align: left;">Medical school</td>
+<td style="text-align: right;">93.84 / 85.97</td>
+<td style="text-align: right;">95.80 / 95.28</td>
+<td style="text-align: right;">96.00 / 96.09</td>
+<td style="text-align: right;">95.68 / 91.26</td>
+<td style="text-align: right;">93.84 / 86.87</td>
+</tr>
+<tr>
+<td style="text-align: left;">Graduation year</td>
+<td style="text-align: right;">95.46 / 95.19</td>
+<td style="text-align: right;">95.78 / 96.92</td>
+<td style="text-align: right;">95.73 / 97.84</td>
+<td style="text-align: right;">97.32 / 95.38</td>
+<td style="text-align: right;">95.62 / 92.40</td>
+</tr>
+<tr>
+<td style="text-align: left;">License year</td>
+<td style="text-align: right;">93.55 / 90.76</td>
+<td style="text-align: right;">96.99 / 97.34</td>
+<td style="text-align: right;">95.70 / 97.84</td>
+<td style="text-align: right;">96.96 / 95.71</td>
+<td style="text-align: right;">92.66 / 90.84</td>
+</tr>
+<tr>
+<td style="text-align: left;">State</td>
+<td style="text-align: right;">94.62 / 90.39</td>
+<td style="text-align: right;">97.54 / 97.36</td>
+<td style="text-align: right;">97.75 / 97.78</td>
+<td style="text-align: right;">97.25 / 95.21</td>
+<td style="text-align: right;">96.49 / 93.19</td>
+</tr>
+<tr>
+<td style="text-align: left;">City</td>
+<td style="text-align: right;">93.26 / 89.92</td>
+<td style="text-align: right;">95.88 / 95.61</td>
+<td style="text-align: right;">96.53 / 96.57</td>
+<td style="text-align: right;">94.93 / 93.13</td>
+<td style="text-align: right;">93.31 / 90.50</td>
+</tr>
+<tr>
+<td style="text-align: left;">County</td>
+<td style="text-align: right;">88.86 / 85.67</td>
+<td style="text-align: right;">94.88 / 86.20</td>
+<td style="text-align: right;">96.71 / 96.69</td>
+<td style="text-align: right;">91.48 / 89.74</td>
+<td style="text-align: right;">88.45 / 85.78</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td style="text-align: left;">Name</td>
+<td style="text-align: right;">95.06 / 94.48</td>
+<td style="text-align: right;">96.72 / 97.81</td>
+<td style="text-align: right;">98.04 / 98.65</td>
+<td style="text-align: right;">96.06 / 95.44</td>
+<td style="text-align: right;">94.92 / 93.07</td>
+</tr>
+<tr>
+<td style="text-align: left;">Birth year</td>
+<td style="text-align: right;">95.00 / 96.13</td>
+<td style="text-align: right;">97.33 / 97.57</td>
+<td style="text-align: right;">98.00 / 98.30</td>
+<td style="text-align: right;">96.29 / 95.03</td>
+<td style="text-align: right;">94.84 / 92.58</td>
+</tr>
+<tr>
+<td style="text-align: left;">Medical school</td>
+<td style="text-align: right;">94.65 / 89.72</td>
+<td style="text-align: right;">96.94 / 96.74</td>
+<td style="text-align: right;">97.45 / 98.03</td>
+<td style="text-align: right;">94.48 / 92.49</td>
+<td style="text-align: right;">92.99 / 90.48</td>
+</tr>
+<tr>
+<td style="text-align: left;">Graduation year</td>
+<td style="text-align: right;">94.03 / 94.85</td>
+<td style="text-align: right;">95.44 / 96.86</td>
+<td style="text-align: right;">95.88 / 98.24</td>
+<td style="text-align: right;">95.90 / 94.44</td>
+<td style="text-align: right;">94.55 / 91.88</td>
+</tr>
+<tr>
+<td style="text-align: left;">License year</td>
+<td style="text-align: right;">93.06 / 90.66</td>
+<td style="text-align: right;">96.78 / 97.29</td>
+<td style="text-align: right;">96.85 / 98.21</td>
+<td style="text-align: right;">95.73 / 94.53</td>
+<td style="text-align: right;">93.56 / 89.95</td>
+</tr>
+<tr>
+<td style="text-align: left;">State</td>
+<td style="text-align: right;">94.24 / 90.58</td>
+<td style="text-align: right;">96.72 / 97.45</td>
+<td style="text-align: right;">98.06 / 98.27</td>
+<td style="text-align: right;">96.06 / 95.08</td>
+<td style="text-align: right;">94.50 / 92.21</td>
+</tr>
+<tr>
+<td style="text-align: left;">City</td>
+<td style="text-align: right;">88.98 / 85.68</td>
+<td style="text-align: right;">95.25 / 96.14</td>
+<td style="text-align: right;">96.58 / 96.95</td>
+<td style="text-align: right;">91.76 / 91.00</td>
+<td style="text-align: right;">91.65 / 89.69</td>
+</tr>
+<tr>
+<td style="text-align: left;">County</td>
+<td style="text-align: right;">83.36 / 80.28</td>
+<td style="text-align: right;">95.14 / 89.78</td>
+<td style="text-align: right;">96.65 / 96.97</td>
+<td style="text-align: right;">86.31 / 85.61</td>
+<td style="text-align: right;">87.31 / 85.42</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Agreement with the cleaned validation sample; scan-verified accuracy
+not assessed. Same frames, links and scorer as Table <a
+href="#tab:records">2</a>. Name is a link key, so its agreement is
+linkage-conditioned. Years as two-digit tokens; school codes after
+syntactic normalization; places after formatting normalization. Integer
+counts for both editions appear in Table <a
+href="#tab:fieldcounts">G.2</a>.</p>
+</div>
+</div>
+<p>Table <a href="#tab:fieldcounts">G.2</a> gives the integer counts
+behind Table <a href="#tab:fields">G.1</a>: agreeing linked values,
+scorable output values and scorable reference values, for each field and
+the five workflows, on the 1912 and 1921 analysis frames. Table <a
+href="#tab:directions">G.4</a> gives the disagreement counts of
+Section <a href="#sec:disagree">5.3</a>. Table <a
+href="#tab:cleaning">G.3</a> shows what release cleaning does to the
+release table’s agreement, scored as read and after cleaning on links
+fixed from the as-read values. We selected the cleaning rules by
+comparing candidates against the transcription in the 1912 and 1921
+editions before running this comparison.</p>
+<div class="landscape">
+<div id="tab:fieldcounts" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table G.2">
+<table>
+<caption><span class="caption-label">Table G.2. </span>Field counts by
+workflow, 1912 and 1921: agreeing / scorable output / scorable reference
+values</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: right;">MLLM</th>
+<th style="text-align: right;">Parser</th>
+<th style="text-align: right;">Combined</th>
+<th style="text-align: right;">Open LLM</th>
+<th style="text-align: right;">Open OCR-LLM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="6" style="text-align: left;"><em>1912</em></td>
+</tr>
+<tr>
+<td style="text-align: left;">Name</td>
+<td style="text-align: right;">116,817 / 121,356 / 122,188</td>
+<td style="text-align: right;">120,462 / 123,496 / 122,188</td>
+<td style="text-align: right;">121,010 / 123,829 / 122,188</td>
+<td style="text-align: right;">118,613 / 121,370 / 122,188</td>
+<td style="text-align: right;">115,780 / 119,991 / 122,188</td>
+</tr>
+<tr>
+<td style="text-align: left;">Birth year</td>
+<td style="text-align: right;">87,462 / 90,301 / 90,208</td>
+<td style="text-align: right;">88,130 / 90,014 / 90,208</td>
+<td style="text-align: right;">88,557 / 90,308 / 90,208</td>
+<td style="text-align: right;">86,459 / 88,212 / 90,208</td>
+<td style="text-align: right;">84,086 / 87,829 / 90,208</td>
+</tr>
+<tr>
+<td style="text-align: left;">Medical school</td>
+<td style="text-align: right;">102,980 / 109,737 / 119,787</td>
+<td style="text-align: right;">114,134 / 119,140 / 119,787</td>
+<td style="text-align: right;">115,109 / 119,902 / 119,787</td>
+<td style="text-align: right;">109,317 / 114,258 / 119,787</td>
+<td style="text-align: right;">104,060 / 110,891 / 119,787</td>
+</tr>
+<tr>
+<td style="text-align: left;">Graduation year</td>
+<td style="text-align: right;">112,071 / 117,404 / 117,731</td>
+<td style="text-align: right;">114,101 / 119,124 / 117,731</td>
+<td style="text-align: right;">115,193 / 120,326 / 117,731</td>
+<td style="text-align: right;">112,291 / 115,385 / 117,731</td>
+<td style="text-align: right;">108,787 / 113,771 / 117,731</td>
+</tr>
+<tr>
+<td style="text-align: left;">License year</td>
+<td style="text-align: right;">85,040 / 90,908 / 93,693</td>
+<td style="text-align: right;">91,205 / 94,036 / 93,693</td>
+<td style="text-align: right;">91,669 / 95,786 / 93,693</td>
+<td style="text-align: right;">89,678 / 92,491 / 93,693</td>
+<td style="text-align: right;">85,107 / 91,852 / 93,693</td>
+</tr>
+<tr>
+<td style="text-align: left;">State</td>
+<td style="text-align: right;">111,837 / 118,200 / 123,725</td>
+<td style="text-align: right;">120,461 / 123,496 / 123,725</td>
+<td style="text-align: right;">120,982 / 123,769 / 123,725</td>
+<td style="text-align: right;">117,799 / 121,129 / 123,725</td>
+<td style="text-align: right;">115,294 / 119,489 / 123,725</td>
+</tr>
+<tr>
+<td style="text-align: left;">City</td>
+<td style="text-align: right;">111,237 / 119,280 / 123,713</td>
+<td style="text-align: right;">118,282 / 123,371 / 123,713</td>
+<td style="text-align: right;">119,470 / 123,768 / 123,713</td>
+<td style="text-align: right;">115,220 / 121,370 / 123,713</td>
+<td style="text-align: right;">111,960 / 119,991 / 123,713</td>
+</tr>
+<tr>
+<td style="text-align: left;">County</td>
+<td style="text-align: right;">105,991 / 119,280 / 123,725</td>
+<td style="text-align: right;">106,655 / 112,414 / 123,725</td>
+<td style="text-align: right;">119,630 / 123,702 / 123,725</td>
+<td style="text-align: right;">111,035 / 121,370 / 123,725</td>
+<td style="text-align: right;">106,128 / 119,991 / 123,725</td>
+</tr>
+<tr>
+<td colspan="6" style="text-align: left;"><em>1921</em></td>
+</tr>
+<tr>
+<td style="text-align: left;">Name</td>
+<td style="text-align: right;">116,883 / 122,953 / 123,708</td>
+<td style="text-align: right;">120,998 / 125,101 / 123,708</td>
+<td style="text-align: right;">122,032 / 124,477 / 123,708</td>
+<td style="text-align: right;">118,070 / 122,915 / 123,708</td>
+<td style="text-align: right;">115,136 / 121,295 / 123,708</td>
+</tr>
+<tr>
+<td style="text-align: left;">Birth year</td>
+<td style="text-align: right;">105,239 / 110,774 / 109,480</td>
+<td style="text-align: right;">106,823 / 109,749 / 109,480</td>
+<td style="text-align: right;">107,624 / 109,825 / 109,480</td>
+<td style="text-align: right;">104,037 / 108,043 / 109,480</td>
+<td style="text-align: right;">101,355 / 106,873 / 109,480</td>
+</tr>
+<tr>
+<td style="text-align: left;">Medical school</td>
+<td style="text-align: right;">108,682 / 114,831 / 121,137</td>
+<td style="text-align: right;">117,191 / 120,890 / 121,137</td>
+<td style="text-align: right;">118,746 / 121,851 / 121,137</td>
+<td style="text-align: right;">112,038 / 118,578 / 121,137</td>
+<td style="text-align: right;">109,605 / 117,862 / 121,137</td>
+</tr>
+<tr>
+<td style="text-align: left;">Graduation year</td>
+<td style="text-align: right;">112,852 / 120,019 / 118,984</td>
+<td style="text-align: right;">115,252 / 120,764 / 118,984</td>
+<td style="text-align: right;">116,894 / 121,920 / 118,984</td>
+<td style="text-align: right;">112,374 / 117,178 / 118,984</td>
+<td style="text-align: right;">109,326 / 115,622 / 118,984</td>
+</tr>
+<tr>
+<td style="text-align: left;">License year</td>
+<td style="text-align: right;">93,603 / 100,580 / 103,249</td>
+<td style="text-align: right;">100,454 / 103,791 / 103,249</td>
+<td style="text-align: right;">101,401 / 104,701 / 103,249</td>
+<td style="text-align: right;">97,604 / 101,961 / 103,249</td>
+<td style="text-align: right;">92,869 / 99,265 / 103,249</td>
+</tr>
+<tr>
+<td style="text-align: left;">State</td>
+<td style="text-align: right;">112,472 / 119,344 / 124,165</td>
+<td style="text-align: right;">120,998 / 125,101 / 124,165</td>
+<td style="text-align: right;">122,013 / 124,424 / 124,165</td>
+<td style="text-align: right;">118,053 / 122,897 / 124,165</td>
+<td style="text-align: right;">114,488 / 121,146 / 124,165</td>
+</tr>
+<tr>
+<td style="text-align: left;">City</td>
+<td style="text-align: right;">106,196 / 119,344 / 123,948</td>
+<td style="text-align: right;">119,158 / 125,101 / 123,948</td>
+<td style="text-align: right;">120,164 / 124,424 / 123,948</td>
+<td style="text-align: right;">112,788 / 122,915 / 123,948</td>
+<td style="text-align: right;">111,167 / 121,295 / 123,948</td>
+</tr>
+<tr>
+<td style="text-align: left;">County</td>
+<td style="text-align: right;">99,482 / 119,344 / 123,925</td>
+<td style="text-align: right;">111,256 / 116,944 / 123,925</td>
+<td style="text-align: right;">120,170 / 124,334 / 123,925</td>
+<td style="text-align: right;">106,087 / 122,915 / 123,925</td>
+<td style="text-align: right;">105,855 / 121,241 / 123,925</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="minipage">
+<p><em>Notes:</em> Agreement with the cleaned validation sample;
+scan-verified accuracy not assessed. Unmatched rows’ values stay in the
+denominators; a cell with several years or schools contributes each
+value. Source: the field-agreement comparison.</p>
+</div>
+</div>
+<div class="threeparttable">
+<div id="tab:cleaning" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table G.3">
+<table>
+<caption><span class="caption-label">Table G.3. </span>Release cleaning
+and agreement, combined table, 1912 and 1921 (precision / recall,
+%)</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: right;">As read</th>
+<th style="text-align: right;">After cleaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="3" style="text-align: left;"><em>1912</em></td>
+</tr>
+<tr>
+<td style="text-align: left;">Medical school</td>
+<td style="text-align: right;">96.00 / 96.09</td>
+<td style="text-align: right;">97.47 / 97.59</td>
+</tr>
+<tr>
+<td style="text-align: left;">Birth year</td>
+<td style="text-align: right;">98.06 / 98.17</td>
+<td style="text-align: right;">98.07 / 98.16</td>
+</tr>
+<tr>
+<td style="text-align: left;">City</td>
+<td style="text-align: right;">96.53 / 96.57</td>
+<td style="text-align: right;">96.53 / 96.57</td>
+</tr>
+<tr>
+<td style="text-align: left;">County</td>
+<td style="text-align: right;">91.34 / 91.26</td>
+<td style="text-align: right;">96.71 / 96.69</td>
+</tr>
+<tr>
+<td colspan="3" style="text-align: left;"><em>1921</em></td>
+</tr>
+<tr>
+<td style="text-align: left;">Medical school</td>
+<td style="text-align: right;">97.45 / 98.03</td>
+<td style="text-align: right;">97.48 / 98.11</td>
+</tr>
+<tr>
+<td style="text-align: left;">Birth year</td>
+<td style="text-align: right;">98.00 / 98.30</td>
+<td style="text-align: right;">98.01 / 98.30</td>
+</tr>
+<tr>
+<td style="text-align: left;">City</td>
+<td style="text-align: right;">96.58 / 96.95</td>
+<td style="text-align: right;">96.58 / 96.95</td>
+</tr>
+<tr>
+<td style="text-align: left;">County</td>
+<td style="text-align: right;">90.90 / 90.96</td>
+<td style="text-align: right;">96.65 / 96.97</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Agreement with the cleaned validation sample; scan-verified accuracy
+not assessed. Links fixed from the as-read values. The as-read school,
+birth-year and city figures and the cleaned county figure are the
+combined table’s entries in Table <a href="#tab:fields">G.1</a>; the
+comparison is between the release table’s <code>*_as_read</code> columns
+and its cleaned columns. Source: the release-cleaning comparison.</p>
+</div>
+</div>
+<div class="threeparttable">
+<div id="tab:directions" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table G.4">
+<table>
+<caption><span class="caption-label">Table G.4. </span>Disagreement
+between the MLLM workflow and the AI-assisted parser on rows linked
+through the combined table, 1912 and 1921</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: right;">Both agree</th>
+<th style="text-align: right;">Only MLLM agrees</th>
+<th style="text-align: right;">Only parser agrees</th>
+<th style="text-align: right;">Neither agrees</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="5" style="text-align: left;"><em>1912</em></td>
+</tr>
+<tr>
+<td style="text-align: left;">Birth year</td>
+<td style="text-align: right;">86,130</td>
+<td style="text-align: right;">231</td>
+<td style="text-align: right;">2,213</td>
+<td style="text-align: right;">77</td>
+</tr>
+<tr>
+<td style="text-align: left;">Graduation year</td>
+<td style="text-align: right;">110,682</td>
+<td style="text-align: right;">847</td>
+<td style="text-align: right;">3,703</td>
+<td style="text-align: right;">192</td>
+</tr>
+<tr>
+<td style="text-align: left;">License year</td>
+<td style="text-align: right;">83,524</td>
+<td style="text-align: right;">269</td>
+<td style="text-align: right;">7,911</td>
+<td style="text-align: right;">160</td>
+</tr>
+<tr>
+<td style="text-align: left;">Medical school</td>
+<td style="text-align: right;">101,130</td>
+<td style="text-align: right;">1,067</td>
+<td style="text-align: right;">11,530</td>
+<td style="text-align: right;">1,718</td>
+</tr>
+<tr>
+<td colspan="5" style="text-align: left;"><em>1921</em></td>
+</tr>
+<tr>
+<td style="text-align: left;">Birth year</td>
+<td style="text-align: right;">105,353</td>
+<td style="text-align: right;">381</td>
+<td style="text-align: right;">1,893</td>
+<td style="text-align: right;">64</td>
+</tr>
+<tr>
+<td style="text-align: left;">Graduation year</td>
+<td style="text-align: right;">112,659</td>
+<td style="text-align: right;">1,228</td>
+<td style="text-align: right;">3,031</td>
+<td style="text-align: right;">118</td>
+</tr>
+<tr>
+<td style="text-align: left;">License year</td>
+<td style="text-align: right;">95,196</td>
+<td style="text-align: right;">534</td>
+<td style="text-align: right;">5,676</td>
+<td style="text-align: right;">120</td>
+</tr>
+<tr>
+<td style="text-align: left;">Medical school</td>
+<td style="text-align: right;">108,471</td>
+<td style="text-align: right;">1,140</td>
+<td style="text-align: right;">7,106</td>
+<td style="text-align: right;">318</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Agreement with the cleaned validation sample; scan-verified accuracy
+not assessed. Cells on the combined table’s linked rows: 1912, 121,010
+rows on 903 pages; 1921, 122,032 rows on 1,034 pages. An absent
+extraction entry counts as non-agreement. Counts describe agreement with
+the transcription and do not establish which extraction reproduces the
+printed entry. Rows where the reference is blank are left out; a cell
+with several school codes counts once here and once per value in
+Table <a href="#tab:fieldcounts">G.2</a>. Source: the comparison of
+extraction disagreements.</p>
+</div>
+</div>
+</section>
+<section id="app:cost" class="level2">
+<h2><span class="header-section-number">Appendix H</span> Cost
+accounting</h2>
+<p>Table <a href="#tab:costs">H.1</a> gives the cost of manual
+transcription and the direct processing charges for the machine
+workflows, in total and per page. Manual costs are the delivered
+workbook page counts, 2,242 pages across both editions, at the invoiced
+€14.70 per page. The machine cost per page divides the combined Gemini
+and Azure charges by the same page count. We allocate Gemini charges by
+whole billing days and assume one successful Azure OCR pass per page, so
+the machine figures are estimates, not invoice totals. Ratios use
+unrounded inputs and one exchange-rate date (ECB, 3 February 2026).</p>
+<p>The comparison covers direct processing charges only. It leaves out
+engineering, review, model development, coding-agent assistance, energy
+and the local computing hardware. The hardware is shared with other
+project work and hosted-API workflows do not need it, so adding it would
+not make the comparison like for like. The manual transcription also
+covers a different set of pages and fields than the machine outputs, and
+we do not estimate a separate cost for the open model pipelines.</p>
+<div class="threeparttable">
+<div id="tab:costs" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table H.1">
+<table>
+<caption><span class="caption-label">Table H.1. </span>Manual
+transcription and estimated machine processing charges</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Component</th>
+<th style="text-align: left;">Unit</th>
+<th style="text-align: right;">1912</th>
+<th style="text-align: right;">1921</th>
+<th style="text-align: right;">Both editions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Purchased transcription</td>
+<td style="text-align: left;">Pages</td>
+<td style="text-align: right;">1,007</td>
+<td style="text-align: right;">1,235</td>
+<td style="text-align: right;">2,242</td>
+</tr>
+<tr>
+<td style="text-align: left;">Manual transcription</td>
+<td style="text-align: left;">EUR</td>
+<td style="text-align: right;">14,802.90</td>
+<td style="text-align: right;">18,154.50</td>
+<td style="text-align: right;">32,957.40</td>
+</tr>
+<tr>
+<td style="text-align: left;">Gemini, allocated billing</td>
+<td style="text-align: left;">DKK</td>
+<td style="text-align: right;">136.99</td>
+<td style="text-align: right;">241.71</td>
+<td style="text-align: right;">378.70</td>
+</tr>
+<tr>
+<td style="text-align: left;">Azure, one-pass estimate</td>
+<td style="text-align: left;">USD</td>
+<td style="text-align: right;">13.88</td>
+<td style="text-align: right;">14.80</td>
+<td style="text-align: right;">28.68</td>
+</tr>
+<tr>
+<td style="text-align: left;">Gemini plus Azure</td>
+<td style="text-align: left;">EUR</td>
+<td style="text-align: right;">30.10</td>
+<td style="text-align: right;">44.90</td>
+<td style="text-align: right;">75.01</td>
+</tr>
+<tr>
+<td style="text-align: left;">Manual cost per page</td>
+<td style="text-align: left;">EUR</td>
+<td style="text-align: right;">14.70</td>
+<td style="text-align: right;">14.70</td>
+<td style="text-align: right;">14.70</td>
+</tr>
+<tr>
+<td style="text-align: left;">Machine cost per page</td>
+<td style="text-align: left;">EUR</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">0.03</td>
+</tr>
+<tr>
+<td style="text-align: left;">Manual / estimated API cost</td>
+<td style="text-align: left;">Ratio</td>
+<td style="text-align: right;">492</td>
+<td style="text-align: right;">404</td>
+<td style="text-align: right;">439</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Manual costs use delivered workbook page counts at €14.70 per page,
+reconciled to the vendor’s invoices; the 1918 batch and unassigned
+supplement are excluded. These are purchased-coverage counts, not the
+analysis frames. API figures cover Gemini and Azure, not a separate cost
+estimate for the open model pipelines.</p>
+<p>Gemini 2.0 Flash billing is allocated by whole days: 28–31 January
+2026 (1912), 23–25 January and 3–5 February (1921); other-model charges
+are excluded. Edition overlap on 25 and 31 January makes attribution
+approximate. Excluding 31 January gives DKK 114.12 for 1912; excluding
+25 January gives DKK 185.45 for 1921. These are scenarios, not
+confidence bounds.</p>
+<p>Azure assumes 1,388 and 1,480 successful one-page images at the
+conditional West Europe prebuilt-layout S0 list price of USD 10 per
+1,000 pages (effective from August 2021). Actual Azure billing and
+repeat-call counts were not available; these are list-price estimates,
+not invoice totals. EUR equivalents and ratios use ECB reference rates
+on 3 February 2026: EUR 1 = DKK 7.4687 = USD 1.1801, a common-date
+presentation convention; totals and ratios use unrounded inputs.</p>
+</div>
+</div>
+</section>
+<section id="app:robust" class="level2">
+<h2><span class="header-section-number">Appendix I</span> Robustness to
+the page frame</h2>
+<p>The analysis frames keep every transcribed page without an
+ignored-row placeholder (Section <a href="#sec:reference">4.1</a>). Two
+choices could move the results: leaving out the pages flagged for
+incomplete coverage, and keeping the pages seen during parser
+development, drawn into the frozen design sample or used in diagnostics.
+Table <a href="#tab:robust-coverage">I.1</a> scores every workflow on
+all transcribed pages and on the incomplete pages alone; Table <a
+href="#tab:robust-exposure">I.2</a> scores them on the analysis frame
+without the exposed pages and on the exposed pages alone. Links are
+fixed edition-wide before any page restriction, so each frame scores the
+same links.</p>
+<div class="threeparttable">
+<div id="tab:robust-coverage" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table I.1">
+<table>
+<caption><span class="caption-label">Table I.1. </span>Record agreement
+by coverage frame, 1912 and 1921</caption>
+<tbody>
+<tr>
+<td style="text-align: left;">Coverage</td>
+<td colspan="4" style="text-align: center;">1912</td>
+<td colspan="4" style="text-align: center;">1921</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td colspan="2" style="text-align: center;">All transcribed</td>
+<td colspan="2" style="text-align: center;">Incomplete pages</td>
+<td colspan="2" style="text-align: center;">All transcribed</td>
+<td colspan="2" style="text-align: center;">Incomplete pages</td>
+</tr>
+<tr>
+<td style="text-align: left;">Workflow</td>
+<td style="text-align: right;">Prec. (%)</td>
+<td style="text-align: right;">Recall (%)</td>
+<td style="text-align: right;">Prec. (%)</td>
+<td style="text-align: right;">Recall (%)</td>
+<td style="text-align: right;">Prec. (%)</td>
+<td style="text-align: right;">Recall (%)</td>
+<td style="text-align: right;">Prec. (%)</td>
+<td style="text-align: right;">Recall (%)</td>
+</tr>
+<tr>
+<td style="text-align: left;">MLLM</td>
+<td style="text-align: right;">94.76</td>
+<td style="text-align: right;">94.21</td>
+<td style="text-align: right;">93.61</td>
+<td style="text-align: right;">92.40</td>
+<td style="text-align: right;">92.55</td>
+<td style="text-align: right;">93.96</td>
+<td style="text-align: right;">84.11</td>
+<td style="text-align: right;">92.90</td>
+</tr>
+<tr>
+<td style="text-align: left;">Parser</td>
+<td style="text-align: right;">97.48</td>
+<td style="text-align: right;">97.27</td>
+<td style="text-align: right;">96.89</td>
+<td style="text-align: right;">96.48</td>
+<td style="text-align: right;">95.11</td>
+<td style="text-align: right;">97.44</td>
+<td style="text-align: right;">86.54</td>
+<td style="text-align: right;">97.42</td>
+</tr>
+<tr>
+<td style="text-align: left;">Combined</td>
+<td style="text-align: right;">97.65</td>
+<td style="text-align: right;">97.72</td>
+<td style="text-align: right;">97.03</td>
+<td style="text-align: right;">96.93</td>
+<td style="text-align: right;">96.43</td>
+<td style="text-align: right;">98.32</td>
+<td style="text-align: right;">87.89</td>
+<td style="text-align: right;">98.53</td>
+</tr>
+<tr>
+<td style="text-align: left;">Open LLM</td>
+<td style="text-align: right;">97.57</td>
+<td style="text-align: right;">95.60</td>
+<td style="text-align: right;">96.14</td>
+<td style="text-align: right;">93.15</td>
+<td style="text-align: right;">94.44</td>
+<td style="text-align: right;">95.22</td>
+<td style="text-align: right;">85.90</td>
+<td style="text-align: right;">96.00</td>
+</tr>
+<tr>
+<td style="text-align: left;">Open OCR-LLM</td>
+<td style="text-align: right;">96.42</td>
+<td style="text-align: right;">93.54</td>
+<td style="text-align: right;">95.77</td>
+<td style="text-align: right;">93.21</td>
+<td style="text-align: right;">93.35</td>
+<td style="text-align: right;">92.74</td>
+<td style="text-align: right;">85.02</td>
+<td style="text-align: right;">92.85</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Agreement with the cleaned validation sample; scan-verified accuracy
+not assessed. All transcribed: 1,233 pages and 145,064 reference rows in
+1921, 1,006 and 137,501 in 1912. Incomplete pages: the pages with an
+ignored-row placeholder, 197 pages and 20,897 rows in 1921, 103 and
+13,775 in 1912. On these pages part of the printed entries were not
+transcribed, so precision understates agreement. Links after the second
+pass; open LLM and open OCR-LLM as in Table <a
+href="#tab:records">2</a>.</p>
+</div>
+</div>
+<div class="threeparttable">
+<div id="tab:robust-exposure" class="table-float">
+<div class="table-scroll" tabindex="0" role="region"
+aria-label="Table I.2">
+<table>
+<caption><span class="caption-label">Table I.2. </span>Record agreement
+with and without exposed pages, 1912 and 1921</caption>
+<tbody>
+<tr>
+<td style="text-align: left;">Exposure</td>
+<td colspan="4" style="text-align: center;">1912</td>
+<td colspan="4" style="text-align: center;">1921</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td colspan="2" style="text-align: center;">Without exposed pages</td>
+<td colspan="2" style="text-align: center;">Exposed pages only</td>
+<td colspan="2" style="text-align: center;">Without exposed pages</td>
+<td colspan="2" style="text-align: center;">Exposed pages only</td>
+</tr>
+<tr>
+<td style="text-align: left;">Workflow</td>
+<td style="text-align: right;">Prec. (%)</td>
+<td style="text-align: right;">Recall (%)</td>
+<td style="text-align: right;">Prec. (%)</td>
+<td style="text-align: right;">Recall (%)</td>
+<td style="text-align: right;">Prec. (%)</td>
+<td style="text-align: right;">Recall (%)</td>
+<td style="text-align: right;">Prec. (%)</td>
+<td style="text-align: right;">Recall (%)</td>
+</tr>
+<tr>
+<td style="text-align: left;">MLLM</td>
+<td style="text-align: right;">95.01</td>
+<td style="text-align: right;">94.64</td>
+<td style="text-align: right;">94.05</td>
+<td style="text-align: right;">92.83</td>
+<td style="text-align: right;">94.33</td>
+<td style="text-align: right;">94.29</td>
+<td style="text-align: right;">92.74</td>
+<td style="text-align: right;">93.12</td>
+</tr>
+<tr>
+<td style="text-align: left;">Parser</td>
+<td style="text-align: right;">97.62</td>
+<td style="text-align: right;">97.46</td>
+<td style="text-align: right;">96.96</td>
+<td style="text-align: right;">96.66</td>
+<td style="text-align: right;">96.59</td>
+<td style="text-align: right;">97.46</td>
+<td style="text-align: right;">97.59</td>
+<td style="text-align: right;">97.39</td>
+</tr>
+<tr>
+<td style="text-align: left;">Combined</td>
+<td style="text-align: right;">97.80</td>
+<td style="text-align: right;">97.89</td>
+<td style="text-align: right;">97.20</td>
+<td style="text-align: right;">97.20</td>
+<td style="text-align: right;">98.06</td>
+<td style="text-align: right;">98.31</td>
+<td style="text-align: right;">97.87</td>
+<td style="text-align: right;">98.10</td>
+</tr>
+<tr>
+<td style="text-align: left;">Open LLM</td>
+<td style="text-align: right;">97.78</td>
+<td style="text-align: right;">95.94</td>
+<td style="text-align: right;">97.36</td>
+<td style="text-align: right;">95.31</td>
+<td style="text-align: right;">96.09</td>
+<td style="text-align: right;">95.32</td>
+<td style="text-align: right;">95.84</td>
+<td style="text-align: right;">93.57</td>
+</tr>
+<tr>
+<td style="text-align: left;">Open OCR-LLM</td>
+<td style="text-align: right;">96.55</td>
+<td style="text-align: right;">93.64</td>
+<td style="text-align: right;">96.07</td>
+<td style="text-align: right;">93.16</td>
+<td style="text-align: right;">94.87</td>
+<td style="text-align: right;">92.67</td>
+<td style="text-align: right;">95.28</td>
+<td style="text-align: right;">93.10</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tablenotes">
+<p>Agreement with the cleaned validation sample; scan-verified accuracy
+not assessed. Without exposed pages: the analysis frame less every page
+with a scan seen while tuning the parser, drawn into the frozen design
+sample or used in diagnostics, 902 pages and 107,565 reference rows in
+1921, 794 and 108,531 in 1912. Exposed pages only: the 134 and 109 pages
+left out there (16,602 and 15,195 rows): in 1921, 16 design, 116 tuning
+and 2 diagnostic pages; in 1912, 16, 93 and 0. A page on several lists
+counts once, as design before tuning before diagnostic. The record of
+pages seen during parser development is incomplete for 1921. Links after
+the second pass.</p>
+</div>
+</div>
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>We acknowledge support from the Carlsberg Foundation
+through a Research Infrastructure Grant (PI: Christian M. Dahl) and a
+Semper Ardens: Accelerate grant (PI: Anthony Wray), and from Independent
+Research Fund Denmark through a Research Project 1 grant (PI: Anthony
+Wray). We thank Michel Rasmus Jessen, Freja Vallentin Witt, OpenAI’s
+ChatGPT Desktop and Codex, and Anthropic’s Claude Code for research
+assistance, Paradigm Data Services for the manual transcription, and
+Harish Bindra for coordinating it. We thank Gregory Niemesh for sharing
+the digital images of the AMD volumes, and the librarians at Miami
+University (Oxford, Ohio) for photographing the volumes and
+pre-processing the images. We thank seminar participants at the
+University of Gothenburg and the Boston University Empirical Micro
+Reading Group, and participants at the sixth Conference of the European
+Society of Historical Demography in Bologna (2025), for helpful
+comments. The data and codebook are available on Zenodo (version 1.0.0,
+DOI 10.5281/zenodo.23945788) under a CC BY 4.0 license.<a href="#fnref1"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Corresponding author. Email: <a
+href="mailto:wray@sam.sdu.dk">wray@sam.sdu.dk</a>.<a href="#fnref2"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>To compile the first edition, the AMA drew on records
+from state licensing boards, medical schools, medical societies, and a
+direct mail canvass of physicians conducted in 1905 and 1906 <span
+class="citation" data-cites="JAMA1905CardIndex">(<a
+href="#ref-JAMA1905CardIndex" role="doc-biblioref">Journal of the
+American Medical Association 1905</a>)</span>.<a href="#fnref3"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>The first edition of 1906 likely undercounts Black
+physicians <span class="citation" data-cites="chrisinger2024black">(<a
+href="#ref-chrisinger2024black" role="doc-biblioref">Chrisinger
+2024</a>)</span>. In a few cases in each volume, an entry acknowledges
+that a practitioner’s qualifications could not be independently
+verified.<a href="#fnref4" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>We exclude Canada and the US territories from the public
+release as they lie outside our study population. We further exclude
+entries from the “Addendum” section that appears at the end of printed
+AMD volumes – containing corrections and late submissions – as we lack a
+manual transcription of these pages to assess precision and recall (see
+Section <a href="#sec:reference">4.1</a>).<a href="#fnref5"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p>The images were taken by librarians at Miami University
+(Oxford, Ohio). We thank Gregory Niemesh for sharing the image files.<a
+href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p>As some pages were photographed multiple times, we
+de-duplicate the images prior to evaluation.<a href="#fnref7"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p>Extraction was conducted using edition-specific prompts,
+and the resulting outputs from January 2026 for 1912 and February 2026
+for 1921 were retained for evaluation. Because gemini-2.0-flash was
+discontinued on 1 June 2026, the workflow can no longer be rerun using
+the original model version.<a href="#fnref8" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p>The first ChatGPT model released by OpenAI launched
+publicly on November 30, 2022 with limited capabilities and was based on
+GPT-3.5.<a href="#fnref9" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+</main>
+</div>
+<script type="module" src="../paper.js"></script>
+</body>
+</html>

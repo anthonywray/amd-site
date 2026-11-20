@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="890" viewBox="0 0 1600 890" role="img" aria-labelledby="title description">
+  <title id="title">From scans to the released datasets: OCR, then extraction; one comparison with the manual transcription</title>
+  <desc id="description">Step 1, OCR: Azure, a cloud API, reads each whole page; on the open path a rule model cuts each page into its three columns and Chandra, an open model on a local GPU, reads them. Step 2, extraction: a cloud LLM (Gemini) reads names and towns from the Azure text and fields from the page image; matching joins the two passes and round four fills names the image pass did not read from the OCR text (MLLM workflow). Rules written with Claude Code parse the Azure text (AI-assisted parser). Step 3: the two are combined and cleaned into the edition datasets. An open LLM on GPU (DeepSeek-V4-Flash, two calls) extracts from the Azure text (Open LLM) and from the Chandra text (Open OCR-LLM). MLLM workflow, AI-assisted parser and Combined form the Primary Data Release; Open LLM and Open OCR-LLM are the Open Model Pipelines. The comparison with the manual transcription uses the same pages, record-linkage rule and measures for every dataset.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#5c6675"/></marker>
+    <style>
+      text {font-family:Arial,Helvetica,sans-serif;fill:#172033}
+      .phase {fill:#fafaf8;stroke:#b8bfc7;stroke-width:1.5;stroke-dasharray:7 6}
+      .heading {font-size:25px;font-weight:700}
+      .box {stroke-width:2;rx:10}
+      .neutral {fill:#edf0f3;stroke:#6d7987}
+      .gemini {fill:#eaf0fb;stroke:#294f9b}
+      .parser {fill:#fff1df;stroke:#bc7324}
+      .chosen {fill:#e8f3ee;stroke:#387f63}
+      .other {fill:#f0eaf7;stroke:#7b609e}
+      .name {font-size:24px;font-weight:700;text-anchor:middle}
+      .detail {font-size:19px;text-anchor:middle;fill:#475467}
+      .label {font-size:18px;fill:#475467}
+      .flow {fill:none;stroke:#5c6675;stroke-width:2.5;marker-end:url(#arrow);stroke-linejoin:round}
+      .filter {fill:none;stroke:#294f9b;stroke-width:2;stroke-dasharray:5 4;marker-end:url(#arrow)}
+      .tag {font-size:18px;font-weight:700;text-anchor:middle;fill:#ffffff}
+    </style>
+  </defs>
+  <rect width="1600" height="890" fill="white"/>
+  <rect class="phase" x="15" y="35" width="300" height="710" rx="16"/>
+  <rect class="phase" x="335" y="35" width="850" height="710" rx="16"/>
+  <rect class="phase" x="1205" y="35" width="380" height="710" rx="16"/>
+  <text class="heading" x="40" y="75">1 · OCR: image → text</text>
+  <text class="heading" x="360" y="75">2 · Extraction: text → fields</text>
+  <text class="heading" x="1230" y="75">3 · Combine and release</text>
+
+  <!-- The open-LLM frame sits under the arrows that enter it. -->
+  <rect class="box other" x="355" y="500" width="815" height="235"/>
+
+  <!-- Arrows are drawn first so boxes keep their labels clear. -->
+  <path class="flow" d="M165 175 V235"/>
+  <path class="flow" d="M45 135 H30 V517 H45"/>
+  <path class="flow" d="M165 565 V610"/>
+  <path class="flow" d="M285 137 H360"/>
+  <text class="label" x="294" y="127">image</text>
+  <path class="flow" d="M285 282 H360"/>
+  <path class="flow" d="M320 282 V585 H380"/>
+  <path class="flow" d="M320 427 H655"/>
+  <path class="flow" d="M320 360 H1040 V260"/>
+  <text class="label" x="660" y="352">OCR text for round 4</text>
+  <path class="flow" d="M285 657 H345 V625 H380"/>
+  <path class="filter" d="M487 240 V185"/>
+  <text class="label" x="497" y="218">page filter</text>
+  <path class="flow" d="M615 137 H635 V195 H655"/>
+  <path class="flow" d="M615 282 H635 V225 H655"/>
+  <path class="flow" d="M890 210 H915"/>
+  <path class="flow" d="M1165 210 H1200 V280 H1235"/>
+  <path class="flow" d="M890 427 H1200 V320 H1235"/>
+  <path class="flow" d="M1395 345 V430"/>
+  <path class="flow" d="M580 600 H610"/>
+  <path class="flow" d="M810 600 H840"/>
+
+  <!-- Scan and OCR -->
+  <rect class="box neutral" x="45" y="95" width="240" height="80"/>
+  <text class="name" x="165" y="128">Scan → pages</text>
+  <text class="detail" x="165" y="158">Split; prepare JPGs</text>
+  <rect class="box neutral" x="45" y="235" width="240" height="110"/>
+  <text class="name" x="165" y="268">Azure OCR</text>
+  <text class="detail" x="165" y="298">Cloud API (Azure)</text>
+  <text class="detail" x="165" y="326">Jan 2026 · whole page</text>
+  <rect class="box neutral" x="45" y="470" width="240" height="95"/>
+  <text class="name" x="165" y="505">Column cut</text>
+  <text class="detail" x="165" y="537">Rule model: 3 columns</text>
+  <rect class="box neutral" x="45" y="610" width="240" height="95"/>
+  <text class="name" x="165" y="645">Chandra OCR</text>
+  <text class="detail" x="165" y="677">Open model, local GPU</text>
+
+  <!-- MLLM workflow: two Gemini passes, matched -->
+  <rect class="box gemini" x="360" y="95" width="255" height="85"/>
+  <text class="name" x="487" y="130">Biography pass</text>
+  <text class="detail" x="487" y="162">Cloud LLM reads the image</text>
+  <rect class="box gemini" x="360" y="240" width="255" height="85"/>
+  <text class="name" x="487" y="275">Location pass</text>
+  <text class="detail" x="487" y="307">Cloud LLM reads OCR text</text>
+  <rect class="box gemini" x="655" y="160" width="235" height="100"/>
+  <text class="name" x="772" y="195">Match passes</text>
+  <text class="detail" x="772" y="225">Join names (rounds 1–2);</text>
+  <text class="detail" x="772" y="250">carry place (round 3)</text>
+  <rect class="box gemini" x="915" y="160" width="250" height="100"/>
+  <text class="name" x="1040" y="195">Fill from OCR text</text>
+  <text class="detail" x="1040" y="225">Names the image pass</text>
+  <text class="detail" x="1040" y="250">did not read (round 4)</text>
+
+  <!-- AI-assisted parser -->
+  <rect class="box parser" x="655" y="385" width="235" height="85"/>
+  <text class="name" x="772" y="420">Rule-based parser</text>
+  <text class="detail" x="772" y="452">Rules by Claude Code</text>
+
+  <!-- Open LLM on GPU -->
+  <text x="375" y="533" font-size="24" font-weight="700">Open Model Pipelines</text>
+  <text class="label" x="695" y="533">DeepSeek-V4-Flash on a local GPU, two calls</text>
+  <rect class="box other" x="380" y="555" width="200" height="90" style="fill:#ffffff"/>
+  <text class="name" x="480" y="588">Names call</text>
+  <text class="detail" x="480" y="618">Towns + names</text>
+  <rect class="box other" x="610" y="555" width="200" height="90" style="fill:#ffffff"/>
+  <text class="name" x="710" y="588">Cut per name</text>
+  <text class="detail" x="710" y="618">One snippet each</text>
+  <rect class="box other" x="840" y="555" width="200" height="90" style="fill:#ffffff"/>
+  <text class="name" x="940" y="588">Fields call</text>
+  <text class="detail" x="940" y="618">Key fields per name</text>
+  <text class="label" x="380" y="700">Azure text →</text>
+  <text class="label" x="770" y="700">Chandra text →</text>
+
+  <!-- Combine and release -->
+  <rect class="box chosen" x="1235" y="250" width="320" height="95"/>
+  <text class="name" x="1395" y="283">Combine</text>
+  <text class="detail" x="1395" y="313">Align; keep both values,</text>
+  <text class="detail" x="1395" y="336">choose one by rule</text>
+  <rect class="box chosen" x="1235" y="430" width="320" height="95"/>
+  <text class="name" x="1395" y="467">Clean and release</text>
+  <text class="detail" x="1395" y="499">Edition datasets + flags</text>
+
+  <!-- Tags: the five datasets, named by workflow. Each label is one <text> with an id, so a renamed label is a one-line edit. -->
+  <rect x="915" y="120" width="250" height="32" rx="16" fill="#294f9b"/>
+  <text class="tag" id="label-cloud-api" x="1040" y="143">MLLM workflow</text>
+  <rect x="900" y="380" width="260" height="32" rx="16" fill="#bc7324"/>
+  <text class="tag" id="label-agentic" x="1030" y="403">AI-assisted parser</text>
+  <rect x="1425" y="208" width="130" height="32" rx="16" fill="#387f63"/>
+  <text class="tag" id="label-combined" x="1490" y="231">Combined</text>
+  <rect x="495" y="678" width="250" height="32" rx="16" fill="#7b609e"/>
+  <text class="tag" id="label-cloud-gpu" x="620" y="701">Open LLM</text>
+  <rect x="900" y="678" width="250" height="32" rx="16" fill="#7b609e"/>
+  <text class="tag" id="label-osm" x="1025" y="701">Open OCR-LLM</text>
+
+  <!-- Comparison -->
+  <rect class="phase" x="15" y="765" width="1570" height="85" rx="16"/>
+  <text x="40" y="800" font-size="24" font-weight="700">Comparison with the manual transcription: same pages, record-linkage rule and measures for every dataset</text>
+  <text x="40" y="832" font-size="21">Primary Data Release: MLLM workflow, AI-assisted parser and Combined. Open Model Pipelines: Open LLM and Open OCR-LLM.</text>
+  <text class="label" x="40" y="877">Solid arrows: data flow. Dashed arrow: pages selected for the image pass. Tags: the five datasets, named by workflow.</text>
+</svg>
